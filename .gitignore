@@ -1,0 +1,21 @@
+# AI tooling / working space (defensive — these live outside repo)
+.claude/
+CLAUDE.md
+plans/
+docs/
+.ref/
+
+.greennode.json
+.env
+.env.*
+!.env.example
+.agentbase/
+.agentbase-state.json
+__pycache__/
+*.py[cod]
+*.credentials.json
+.venv/
+venv/
+*.egg-info/
+dist/
+build/
