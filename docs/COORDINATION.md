@@ -91,8 +91,10 @@ dl_starter_kit/
 | 2026-06-11 | LLM model TBD: minimax-m2.5 (current `.env`) vs Qwen3 (PRD spec) | Discrepancy flagged — needs decision | open |
 | 2026-06-11 17:12 | **Distillation handled by AgentBase Memory itself, NOT a separate Qwen call in AKC code** | "khúc distill là agent base", "con agent base chỉ tổng hợp thôi"; calling agent (Claude) already pre-structures payload — AKC stays light | anh Đức |
 | 2026-06-11 17:16 | **`/remember` payload is pre-structured** by calling Claude (task, approach tried, why failed, how worked) | "việc nặng nhọc đã có claude lo" — keep AKC backend simple | anh Đức |
-| 2026-06-11 17:21 | **Agent exposes via MCP endpoint** — Claude Code connects to AKC agent as MCP tool | Standard AgentBase agent deploys with MCP-accessible API; calling agent connects once and uses `recall`/`remember` like any MCP tool | both |
+| 2026-06-11 17:21-17:26 | **MCP vs plain HTTP — DEBATE OPEN** | anh Đức: "skill biết endpoint + schema là đủ, không cần MCP cho nặng". Long: "có nhiều tool khác nhau → MCP đáng vì auto-discover". Question: AgentBase native expose MCP sẵn không? | open |
 | 2026-06-11 17:19 | **Calling-side skill** (slash command for source Claude) — owns when/how to invoke `/recall` and shape `/remember` payload | Long = design owner, anh Đức = concept lead | Long |
+| 2026-06-11 17:28 | **Add OpenClaw demo client** — AKC core stays FastAPI per PRD. Build 1 OpenClaw agent (no-code markdown workspace) with skill that calls AKC. Shows AKC integration in automation workflow. | Long |
+| 2026-06-11 17:28 | **Track candidate: Automation & Integration** — pitch via demo (OpenClaw agent automating workflow, using AKC to learn) | Long (TBD with anh Đức) |
 
 ---
 
@@ -109,9 +111,12 @@ dl_starter_kit/
 | 7 | Submission description (100-300 words) | chủ repo draft, anh Đức review | LOW | D7 (16/06) |
 | 8 | Repo rename: `dl-starter-kit` → `akc`? | both decide | LOW | optional |
 | 9 | **Design calling-side skill** (Claude slash command) — when/how to call `/recall` + structure `/remember` payload | **Long** (design), anh Đức (concept review) | HIGH | D3-D4 |
-| 10 | **MCP server contract** for AKC agent — confirm exact MCP tool signatures exposed by AgentBase runtime (recall/remember tool names + schemas) | chủ repo (verify via AgentBase docs) | MED | D3 |
+| 10 | **MCP vs plain HTTP** — debate open. Argument MCP: 5 endpoints in PRD → Claude auto-discover; new tools no skill update. Argument HTTP: skill knows endpoint + schema is enough, less moving parts. Need to confirm: AgentBase agent native expose MCP? | both | HIGH | before D3 code |
 | 11 | **PRD update needed:** §4 (Distillation) and §7 (Architecture) describe Qwen call inside AKC — superseded by 17:12 decision. anh Đức to revise PRD or note in `architecture_v1.md`. | anh Đức | MED | D2-D3 |
 | 12 | **`/remember` payload schema** — pre-structured fields: `{task, approach_tried, why_failed, how_worked, outcome, tags}`. Lock the shape before skill design starts. | both | HIGH | D2 |
+| 13 | **OpenClaw demo client** — provision separate OpenClaw agent (Marketplace 1-Click), workspace markdown configures the demo persona, skill to call AKC | Long (provision + skill), anh Đức (review demo flow) | HIGH | D5-D6 |
+| 14 | **Track final: Automation & Integration vs General/Self-Evolving** — sync with anh Đức. Affects pitch framing + submission description. | both | MED | D5 |
+| 15 | **Demo workflow scenario** — pick a concrete automation use case OpenClaw runs (e.g. "summarize daily feedback" with AKC pattern memory). Locks demo script. | both | MED | D6 |
 
 ---
 
@@ -179,14 +184,29 @@ dl_starter_kit/
 │  - Decides when to /recall vs not           │
 └─────────────────┬──────────────────────────┘
                   │
-                  │  MCP protocol
+                  │  [DEBATE: MCP vs plain HTTP — see open item #10]
+                  │  - anh Đức (17:24): plain HTTP, skill knows schema
+                  │  - Long (17:27): MCP, ≥3 tools → Claude auto-discover
                   ▼
 ┌────────────────────────────────────────────┐
 │  AKC Agent (deployed on AgentBase)          │
-│  - Exposes MCP endpoint                     │
+│  - "thủ thư" — librarian storing patterns   │
+│  - FastAPI HTTP endpoints                   │
 │  - Thin orchestrator: receive + route       │
 │  - NO inline LLM distillation               │
+│  - MCP wrapper TBD (resolve before D3)      │
 └─────────────────┬──────────────────────────┘
+                  │
+                  │  (also called by demo client)
+                  ▲
+┌────────────────────────────────────────────┐
+│  Demo Client: OpenClaw agent (no-code)      │
+│  - Provisioned via Marketplace 1-Click      │
+│  - Markdown workspace = automation persona  │
+│  - Has skill to call AKC /recall + /remember│
+│  - Runs an automation use case for demo     │
+│  - Shows AKC integration in real workflow   │
+└────────────────────────────────────────────┘
                   │
                   ▼
 ┌────────────────────────────────────────────┐
