@@ -119,55 +119,53 @@
 
 ## Traceability
 
-*(Populated by roadmapper)*
-
 | Requirement | Phase | Status |
 |-------------|-------|--------|
-| FNDTN-01 | — | Pending |
-| FNDTN-02 | — | Pending |
-| FNDTN-03 | — | Pending |
-| STORE-01 | — | Pending |
-| STORE-02 | — | Pending |
-| STORE-03 | — | Pending |
-| STORE-04 | — | Pending |
-| ENG-01 | — | Pending |
-| ENG-02 | — | Pending |
-| ENG-03 | — | Pending |
-| ENG-04 | — | Pending |
-| ENG-05 | — | Pending |
-| ENG-06 | — | Pending |
-| ENG-07 | — | Pending |
-| RMB-01 | — | Pending |
-| RMB-02 | — | Pending |
-| RMB-03 | — | Pending |
-| RMB-04 | — | Pending |
-| RMB-05 | — | Pending |
-| RMB-06 | — | Pending |
-| RMB-07 | — | Pending |
-| RMB-08 | — | Pending |
-| RCL-01 | — | Pending |
-| RCL-02 | — | Pending |
-| RCL-03 | — | Pending |
-| RCL-04 | — | Pending |
-| RCL-05 | — | Pending |
-| RCL-06 | — | Pending |
-| STATS-01 | — | Pending |
-| STATS-02 | — | Pending |
-| STATS-03 | — | Pending |
-| EXPORT-01 | — | Pending |
-| EXPORT-02 | — | Pending |
-| DEPLOY-01 | — | Pending |
-| DEPLOY-02 | — | Pending |
-| DEPLOY-03 | — | Pending |
-| DEMO-01 | — | Pending |
-| DEMO-02 | — | Pending |
-| DEMO-03 | — | Pending |
+| FNDTN-01 | Phase 1 | Pending |
+| FNDTN-02 | Phase 1 | Pending |
+| FNDTN-03 | Phase 1 | Pending |
+| STORE-01 | Phase 1 | Pending |
+| STORE-02 | Phase 1 | Pending |
+| STORE-03 | Phase 1 | Pending |
+| STORE-04 | Phase 1 | Pending |
+| ENG-01 | Phase 1 | Pending |
+| ENG-02 | Phase 1 | Pending |
+| ENG-03 | Phase 1 | Pending |
+| ENG-04 | Phase 1 | Pending |
+| ENG-05 | Phase 1 | Pending |
+| ENG-06 | Phase 1 | Pending |
+| ENG-07 | Phase 1 | Pending |
+| RMB-01 | Phase 2 | Pending |
+| RMB-02 | Phase 2 | Pending |
+| RMB-03 | Phase 2 | Pending |
+| RMB-04 | Phase 2 | Pending |
+| RMB-05 | Phase 2 | Pending |
+| RMB-06 | Phase 2 | Pending |
+| RMB-07 | Phase 2 | Pending |
+| RMB-08 | Phase 2 | Pending |
+| RCL-01 | Phase 3 | Pending |
+| RCL-02 | Phase 3 | Pending |
+| RCL-03 | Phase 3 | Pending |
+| RCL-04 | Phase 3 | Pending |
+| RCL-05 | Phase 3 | Pending |
+| RCL-06 | Phase 3 | Pending |
+| STATS-01 | Phase 3 | Pending |
+| STATS-02 | Phase 3 | Pending |
+| STATS-03 | Phase 3 | Pending |
+| EXPORT-01 | Phase 3 | Pending |
+| EXPORT-02 | Phase 3 | Pending |
+| DEPLOY-01 | Phase 4 | Pending |
+| DEPLOY-02 | Phase 4 | Pending |
+| DEPLOY-03 | Phase 4 | Pending |
+| DEMO-01 | Phase 5 | Pending |
+| DEMO-02 | Phase 5 | Pending |
+| DEMO-03 | Phase 5 | Pending |
 
 **Coverage:**
 - v1 requirements: 39 total
-- Mapped to phases: 0
-- Unmapped: 39 ⚠️ (roadmapper will fill)
+- Mapped to phases: 39
+- Unmapped: 0 (complete coverage)
 
 ---
 *Requirements defined: 2026-06-11*
-*Last updated: 2026-06-11 after initial definition*
+*Last updated: 2026-06-11 after roadmap creation — all 39 requirements mapped*
