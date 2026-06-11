@@ -35,7 +35,7 @@ akc/
     router.py            # GET /stats
     service.py           # aggregate counts, avg confidence, top tags
 
-  kb/                    # feature: export knowledge base
+  export/                # feature: export knowledge base
     router.py            # POST /kb/export
     service.py           # render Gold + Production patterns as markdown
 
@@ -88,7 +88,7 @@ main.py
   ├── recall/router     → recall/service → patterns/{store, engine}
   ├── remember/router   → remember/service → remember/distiller, patterns/{store, engine}
   ├── stats/router      → stats/service → patterns/store
-  └── kb/router         → kb/service → patterns/store
+  └── export/router     → export/service → patterns/store
 ```
 
 ---
@@ -116,6 +116,21 @@ main.py
 | Swap storage (SQLite, Postgres) | `patterns/store.py` only — interface stays stable |
 | Swap LLM | `remember/distiller.py` only — service calls `distiller.extract()` |
 | AgentBase Memory integration | `recall/service.py` — alternative search path |
+
+---
+
+## Data vs Code separation
+
+```
+kb/                        # runtime data — gitignored
+  patterns.jsonl
+  confidence_history.jsonl
+
+akc/                       # application code
+  export/                  # feature: /kb/export endpoint
+    router.py
+    service.py
+```
 
 The only contract worth protecting: **`patterns/store.py` interface** (`load`, `append`, `update`). Keep it stable and everything above it stays independent.
 
