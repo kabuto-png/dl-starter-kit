@@ -12,7 +12,7 @@ Five phases deliver a self-improving knowledge API from skeleton to hackathon-re
 
 Decimal phases appear between their surrounding integers in numeric order.
 
-- [ ] **Phase 1: Foundation** - Domain models, JSONL store, confidence engine, /health endpoint
+- [~] **Phase 1: Foundation** - Domain models, JSONL store, confidence engine, /health endpoint
 - [ ] **Phase 2: Write Path** - Qwen distiller, /remember endpoint, background task safety
 - [ ] **Phase 3: Read Path** - /recall, /stats, /kb/export endpoints
 - [ ] **Phase 4: Packaging & Deploy** - Docker container, AgentBase deployment, volume persistence
@@ -88,7 +88,7 @@ Phases execute in numeric order: 1 → 2 → 3 → 4 → 5
 
 | Phase | Plans Complete | Status | Completed |
 |-------|----------------|--------|-----------|
-| 1. Foundation | 0/4 | Not started | - |
+| 1. Foundation | 0/4 | Ready to execute | - |
 | 2. Write Path | 0/TBD | Not started | - |
 | 3. Read Path | 0/TBD | Not started | - |
 | 4. Packaging & Deploy | 0/TBD | Not started | - |
