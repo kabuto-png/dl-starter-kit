@@ -30,7 +30,13 @@ Decimal phases appear between their surrounding integers in numeric order.
   3. A pattern written to `patterns.jsonl` survives a process restart and is re-loaded correctly on next startup
   4. Confidence math is verifiable: a pattern starting at 0.67 reaches Gold (≥0.85) after the expected number of successes and stays demoted once below 0.50
   5. Three consecutive failures are required to demote a Gold-tier pattern; one or two failures alone do not demote it
-**Plans**: TBD
+**Plans**: 4 plans
+
+Plans:
+- [ ] 01-01-PLAN.md — Package skeleton, pydantic-settings config, Pattern/Tier/ConfidenceEvent models
+- [ ] 01-02-PLAN.md — Confidence engine pure functions, .env.example AKC_KB_DIR
+- [ ] 01-03-PLAN.md — JsonlStore with asyncio.Lock, atomic JSONL persistence
+- [ ] 01-04-PLAN.md — main.py FastAPI app with lifespan and /health endpoint
 
 ### Phase 2: Write Path
 **Goal**: Agents can submit raw outcomes and the system distills them into structured patterns stored correctly in the KB
@@ -82,7 +88,7 @@ Phases execute in numeric order: 1 → 2 → 3 → 4 → 5
 
 | Phase | Plans Complete | Status | Completed |
 |-------|----------------|--------|-----------|
-| 1. Foundation | 0/TBD | Not started | - |
+| 1. Foundation | 0/4 | Not started | - |
 | 2. Write Path | 0/TBD | Not started | - |
 | 3. Read Path | 0/TBD | Not started | - |
 | 4. Packaging & Deploy | 0/TBD | Not started | - |
