@@ -283,6 +283,50 @@ Additional flags:
 - `--min-tier gold` — restrict recall to Gold-tier patterns only
 - `--show-history` — print all HTTP calls and raw responses (debug mode)
 
+## How the Confidence Engine Works
+
+Every pattern has a `confidence` score (0.0–0.95) that determines its tier. Tiers control whether a pattern surfaces in recall.
+
+### Tier thresholds
+
+| Tier | Confidence | Behaviour |
+|---|---|---|
+| `gold` | ≥ 0.85 | Highest priority; protected against hair-trigger demotion |
+| `production` | ≥ 0.70 | Default minimum for recall |
+| `experimental` | ≥ 0.50 | Returned only when `min_tier=experimental` |
+| `demoted` | < 0.50 | **Permanently excluded** — never returned, never recoverable |
+
+### Confidence deltas
+
+Each `/remember` call with `patterns_used` IDs updates the referenced patterns:
+
+- `success: true` → **+0.05** per pattern used
+- `success: false` → **−0.10** per pattern used
+
+A new pattern starts at **0.67** (experimental). It needs ~4 successful uses to reach production, ~7 to reach gold — but only 2 failures to be demoted.
+
+### Gold tier guardrail
+
+Gold patterns are protected: they require **3 consecutive failures** before they can fall below gold. A single bad application won't demote a well-proven pattern. Once the guardrail triggers, the tier drops naturally based on the resulting confidence.
+
+### Demotion is permanent
+
+Once a pattern reaches `demoted`, it is locked there regardless of future outcomes. It will never appear in recall results again. This is intentional — a pattern that failed enough to be demoted should not silently resurface.
+
+### What happens when no patterns match
+
+If the KB is empty, all patterns are demoted, or no patterns pass the tier/tag filters, `/recall` returns a **200 with an empty list**:
+
+```json
+{ "patterns": [], "total_found": 0, "query_ms": 12 }
+```
+
+There is no error, no fallback suggestion. The caller is expected to proceed without guidance and then call `/remember` afterward — which is exactly how the KB grows from zero.
+
+### Silence means no penalty
+
+The confidence engine only updates when a caller explicitly reports outcomes via `/remember` with `patterns_used`. If an agent uses a pattern and never reports back, confidence stays unchanged. Consistent feedback is what makes the KB self-improving.
+
 ## Architecture
 
 **Recall Flow:**

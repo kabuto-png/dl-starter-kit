@@ -344,7 +344,8 @@ def update_confidence(pattern, outcome):
 | Component | Choice | Reason |
 |---|---|---|
 | Framework | FastAPI + Python 3.11 | Fast to write, async-native, Pydantic validation |
-| LLM distillation | Qwen 3 via GreenNode MaaS | Strong structured extraction, OpenAI-compatible |
+| LLM client | `openai` SDK (direct) | Thin client for OpenAI-compatible APIs; LangChain/LangGraph explicitly excluded — no agent abstractions needed |
+| LLM distillation | Qwen 3 via GreenNode MaaS | Strong structured extraction, OpenAI-compatible API |
 | Semantic search | AgentBase Memory Service | Native platform, no extra infra |
 | Storage | JSONL append-only | Simple, crash-safe, human-readable audit trail |
 | Container | Docker, port 8080 | Required by AgentBase runtime |
