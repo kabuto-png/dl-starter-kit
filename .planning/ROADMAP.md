@@ -89,7 +89,7 @@ Phases execute in numeric order: 1 → 2 → 3 → 4 → 5
 | Phase | Plans Complete | Status | Completed |
 |-------|----------------|--------|-----------|
 | 1. Foundation | 0/4 | Ready to execute | - |
-| 2. Write Path | 0/TBD | Not started | - |
-| 3. Read Path | 0/TBD | Not started | - |
-| 4. Packaging & Deploy | 0/TBD | Not started | - |
-| 5. Demo Polish | 0/TBD | Not started | - |
+| 2. Write Path | 0/3 | Ready to execute | - |
+| 3. Read Path | 0/4 | Ready to execute | - |
+| 4. Packaging & Deploy | 0/2 | Ready to execute | - |
+| 5. Demo Polish | 0/3 | Ready to execute | - |
