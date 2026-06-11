@@ -1,53 +1,280 @@
-# dl-starter-kit
+# AKC — Agent Knowledge Collective
 
-GreenNode AgentBase agent — Team DL Starter Kit (Claw-a-thon 2026, Nhóm 1).
+A self-improving knowledge API: patterns rise to **Gold** tier through successful use, fall to **Demoted** when they fail.
 
-LangChain + Memory agent: short-term conversation persistence via `AgentBaseMemoryEvents` checkpointer + long-term semantic memory via `remember`/`recall` tools.
+> Built for Anthropic's Claw-a-thon 2026 (Nhom 1)
 
-## Prerequisites
+## Why AKC?
 
-- Python 3.10+
-- GreenNode IAM Service Account (already configured in `.greennode.json`)
+Agents learn from experience — but most frameworks discard that learning at restart.
+AKC solves this with a persistent, confidence-weighted knowledge base:
 
-## Setup
+- **Patterns persist** across container restarts (JSONL append-only store)
+- **Confidence rises** with each successful use (+0.05 per success)
+- **Confidence falls** with each failure (−0.10 per failure)
+- **Gold-tier patterns surface first** on the next query — the knowledge base gets smarter over time
 
-```bash
-python3 -m venv venv && source venv/bin/activate
-pip install -r requirements.txt
-cp .env.example .env
-# Edit .env: LLM_API_KEY, LLM_BASE_URL, LLM_MODEL, MEMORY_ID
-```
-
-## Configure LLM
-
-Use `/agentbase-llm` to create an API key + browse models.
-
-```
-LLM_BASE_URL=https://maas-llm-aiplatform-hcm.api.vngcloud.vn/v1
-LLM_API_KEY=<from /agentbase-llm api-keys create>
-LLM_MODEL=<chosen ENABLED model>
-```
-
-## Run Locally
+## Quick Start
 
 ```bash
-python3 main.py
-# http://127.0.0.1:8080
-curl -X POST http://127.0.0.1:8080/invocations \
+docker run -p 8080:8080 \
+  -e LLM_MODEL=qwen-2.5-7b-instruct \
+  -e LLM_BASE_URL=https://maas-llm-aiplatform-hcm.api.vngcloud.vn/v1 \
+  -e LLM_API_KEY=your-api-key \
+  -e MEMORY_ID=akc-demo \
+  -e AKC_KB_DIR=/app/data/kb \
+  -v /tmp/akc_data:/app/data \
+  <your-registry>/akc-service:latest
+```
+
+Verify the service is running:
+
+```bash
+curl http://localhost:8080/health
+```
+
+Expected response: `{"status": "ok", "pattern_count": 0}`
+
+Seed demo data (30 patterns across Gold / Production / Experimental tiers):
+
+```bash
+python scripts/seed_kb.py --kb-dir /tmp/akc_data/kb
+```
+
+Expected output: `30 patterns written` (5 Gold, 10 Production, 15 Experimental).
+
+## API Reference
+
+| Endpoint | Method | Purpose |
+|----------|--------|---------|
+| `/health` | GET | Service health + pattern count |
+| `/recall` | POST | Fetch high-confidence patterns ranked by confidence |
+| `/remember` | POST | Learn from task outcome; update pattern confidence (async) |
+| `/stats` | GET | KB health metrics (by tier, avg confidence, recently promoted) |
+| `/kb/export` | POST | Export Gold + Production patterns as markdown |
+
+### GET /health
+
+Returns service health and current pattern count.
+
+```bash
+curl http://localhost:8080/health
+```
+
+```json
+{
+  "status": "ok",
+  "pattern_count": 30
+}
+```
+
+### POST /recall
+
+Fetch patterns matching a task context, ranked by confidence descending. Demoted patterns are excluded.
+
+```bash
+curl -X POST http://localhost:8080/recall \
   -H "Content-Type: application/json" \
-  -H "X-GreenNode-AgentBase-User-Id: test-user" \
-  -H "X-GreenNode-AgentBase-Session-Id: test-session-1" \
-  -d '{"message": "Hello, agent!"}'
+  -d '{
+    "task_context": "write async file I/O code in Python",
+    "tags": ["python", "async"],
+    "top_k": 5,
+    "min_tier": "production"
+  }'
 ```
 
-## Deploy
+Request body:
 
-Use `/agentbase-deploy` for build + push vCR + create runtime.
+```json
+{
+  "task_context": "write async file I/O code in Python",
+  "tags": ["python", "async"],
+  "top_k": 5,
+  "min_tier": "production"
+}
+```
 
-## Project Structure
+Example response (one pattern shown):
 
-- `main.py` — LangChain agent with memory tools
-- `Dockerfile` — Python 3.13-slim base
-- `requirements.txt` — LangChain + AgentBase SDK
-- `.env.example` — env template
-- `.greennode.json` — IAM credentials (gitignored)
+```json
+[
+  {
+    "id": "pattern-abc123",
+    "context": "Implement async I/O with asyncio in Python",
+    "what_worked": "Use asyncio.Lock for concurrent access; hold across full read-modify-write cycle",
+    "what_failed": "threading.Lock blocks event loop; avoid in async code",
+    "confidence": 0.92,
+    "tier": "gold",
+    "tags": ["python", "async", "concurrency"],
+    "times_applied": 12,
+    "last_updated": "2026-06-11T10:30:00Z"
+  }
+]
+```
+
+### POST /remember
+
+Learn from a task outcome. Distills outcome into a new pattern and updates confidence of patterns used.
+Returns 202 Accepted immediately — distillation runs in the background.
+
+```bash
+curl -X POST http://localhost:8080/remember \
+  -H "Content-Type: application/json" \
+  -d '{
+    "task_context": "write async file I/O code in Python",
+    "outcome": "success",
+    "patterns_used": ["<pattern-id-from-recall>"]
+  }'
+```
+
+Request body:
+
+```json
+{
+  "task_context": "write async file I/O code in Python",
+  "outcome": "success",
+  "patterns_used": ["<pattern-id-from-recall>"]
+}
+```
+
+Response: `202 Accepted` (distillation runs in background).
+
+### GET /stats
+
+KB health metrics: tier distribution, average confidence, top tags, and recently promoted patterns.
+
+```bash
+curl http://localhost:8080/stats
+```
+
+```json
+{
+  "total_patterns": 30,
+  "by_tier": {
+    "gold": 5,
+    "production": 10,
+    "experimental": 15,
+    "demoted": 0
+  },
+  "avg_confidence": 0.72,
+  "top_tags": ["python", "async", "fastapi", "docker", "concurrency"],
+  "recall_hit_rate": 0.95,
+  "recently_promoted": ["pattern-xyz789"]
+}
+```
+
+### POST /kb/export
+
+Export all Gold + Production patterns as human-readable markdown.
+
+```bash
+curl -X POST http://localhost:8080/kb/export \
+  -H "Content-Type: application/json" \
+  -d '{}'
+```
+
+Returns a markdown string with patterns grouped by tier, showing context, what_worked, what_failed, confidence, and tags.
+
+## Demo: Recall → Task → Remember
+
+The AKC skill automates the core loop. Invoke it with:
+
+```bash
+/akc-recall-task-remember --task "write async file I/O code in Python" --endpoint http://localhost:8080
+```
+
+Skill file: `.claude/skills/akc-recall-task-remember/SKILL.md`
+
+What judges will see:
+
+1. **Recall** — `POST /recall` fetches the top-5 Production+ patterns matching the task context
+2. **Task** — The skill synthesizes a solution guided by recalled pattern advice
+3. **Remember** — `POST /remember` feeds back the outcome; Qwen distils it into a new pattern
+4. **Report** — Confidence deltas, newly learned patterns, and updated tier distribution
+
+Additional flags:
+
+- `--top-k 10` — retrieve more patterns per recall
+- `--min-tier gold` — restrict recall to Gold-tier patterns only
+- `--show-history` — print all HTTP calls and raw responses (debug mode)
+
+## Architecture
+
+**Recall Flow:**
+
+```
+POST /recall {task_context}
+    |
+    v
+AgentBase Memory Service (semantic search)
+    |  [timeout 2s — falls back if unavailable]
+    v
+JSONL Store (tag + tier filter)
+    |
+    v
+Confidence Engine (rank by tier, then confidence desc)
+    |
+    v
+Response: patterns sorted by confidence
+```
+
+**Learning Flow:**
+
+```
+POST /remember {outcome, patterns_used}
+    |
+    v
+202 Accepted (immediate)
+    |
+    v
+BackgroundTask
+    |
+    v
+Qwen Distillation (extract context, what_worked, what_failed)
+    |
+    v
+Confidence Update  success: +0.05 / failure: -0.10
+    |
+    v
+Tier Promotion/Demotion (Gold needs 3 consecutive failures)
+    |
+    v
+Atomically append to patterns.jsonl
+```
+
+**Storage:** `patterns.jsonl` (last-write-wins dedup on read, atomic write via tempfile + os.replace) and
+`confidence_history.jsonl` (pure append audit trail), both stored under `/app/data/kb` — mountable as a Docker volume so patterns survive container restarts.
+
+## Tech Stack
+
+| Component | Technology |
+|-----------|------------|
+| Framework | FastAPI (Python 3.11+) |
+| LLM | OpenAI-compatible Qwen 2.5 7B via GreenNode |
+| Storage | JSONL append-only (crash-safe) |
+| Deployment | Docker; GreenNode AgentBase |
+| Confidence | Bayesian update with Beta(2,1) prior (init 0.67) |
+
+## Roadmap
+
+### v2 Features
+
+- **Observability** — Structured logging + Prometheus `/metrics` endpoint
+- **Query** — Recency filter + BM25 keyword search (complement to semantic recall)
+- **Management** — Manual confidence override, pattern rollback, hard delete
+- **Web UI** — Confidence distribution dashboard and pattern browser
+
+### Out of Scope (v1)
+
+- Authentication / API keys (all callers trusted in MVP)
+- Multi-KB routing (single KB sufficient for v1)
+- Knowledge base sync between nodes
+- 3-stage validation engine
+
+## Contributing
+
+Feedback welcome during judging — file GitHub Issues for feature requests, bugs, or README clarity.
+
+---
+
+Built for Anthropic's Claw-a-thon 2026
