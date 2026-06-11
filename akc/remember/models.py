@@ -1,6 +1,6 @@
 from typing import Optional
 
-from pydantic import BaseModel, field_validator
+from pydantic import BaseModel, Field, field_validator
 
 
 class DistillRequest(BaseModel):
@@ -9,10 +9,18 @@ class DistillRequest(BaseModel):
     RMB-01: task_context and outcome are required fields.
     RMB-07: patterns_used IDs trigger confidence feedback on existing patterns.
     """
-    task_context: str                          # Required: context of the task
-    outcome: str                               # Required: raw outcome text to distill
-    patterns_used: Optional[list[str]] = None  # Optional: IDs of patterns that were applied
-    success: Optional[bool] = None             # Optional: whether the task succeeded
+    task_context: str = Field(..., max_length=4000)              # Required: context of the task
+    outcome: str = Field(..., max_length=8000)                   # Required: raw outcome text to distill
+    what_happened: Optional[str] = Field(None, max_length=8000) # Optional: detailed description of what occurred
+    tags: Optional[list[str]] = None                             # Optional: caller-supplied tags for the new pattern
+    patterns_used: Optional[list[str]] = None                    # Optional: IDs of patterns that were applied
+    success: Optional[bool] = None                               # Optional: whether the task succeeded
+
+    @field_validator("tags", mode="before")
+    @classmethod
+    def normalize_tags(cls, v: list) -> list:
+        """Normalize caller-supplied tags to lowercase — matches Pattern model's ENG-07 convention."""
+        return [t.lower() for t in v] if isinstance(v, list) else v
 
 
 class DistilledPattern(BaseModel):

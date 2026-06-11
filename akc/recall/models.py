@@ -1,13 +1,24 @@
 from __future__ import annotations
 from datetime import datetime
-from pydantic import BaseModel
+from pydantic import BaseModel, Field, field_validator
+
+_VALID_TIERS = {"gold", "production", "experimental", "demoted"}
 
 
 class RecallRequest(BaseModel):
     task_context: str
     tags: list[str] | None = None
-    top_k: int = 5
+    top_k: int = Field(default=5, ge=1, le=100)
     min_tier: str = "production"
+
+    @field_validator("min_tier")
+    @classmethod
+    def validate_min_tier(cls, v: str) -> str:
+        if v not in _VALID_TIERS:
+            raise ValueError(
+                f"min_tier must be one of {sorted(_VALID_TIERS)!r}, got {v!r}"
+            )
+        return v
 
 
 class RecallResult(BaseModel):
@@ -24,4 +35,5 @@ class RecallResult(BaseModel):
 
 class RecallResponse(BaseModel):
     patterns: list[RecallResult]
-    count: int
+    total_found: int
+    query_ms: int = 0

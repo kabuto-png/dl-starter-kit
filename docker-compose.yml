@@ -8,8 +8,8 @@ services:
     environment:
       LLM_MODEL: ${LLM_MODEL:-gpt-4o-mini}
       LLM_BASE_URL: ${LLM_BASE_URL:-http://localhost:8000}
-      LLM_API_KEY: ${LLM_API_KEY:-test-key}
-      MEMORY_ID: ${MEMORY_ID:-test-memory}
+      LLM_API_KEY: ${LLM_API_KEY}
+      MEMORY_ID: ${MEMORY_ID}
       AKC_KB_DIR: /app/data
     volumes:
       - ./kb_data:/app/data

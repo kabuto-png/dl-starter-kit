@@ -12,6 +12,17 @@ from akc.remember.models import DistillRequest, DistilledPattern
 
 logger = logging.getLogger("akc.remember")
 
+# Module-level semaphore — caps concurrent LLM distillation calls to prevent cost attacks
+_DISTILL_SEM = None
+
+
+def _get_distill_sem():
+    global _DISTILL_SEM
+    if _DISTILL_SEM is None:
+        import asyncio
+        _DISTILL_SEM = asyncio.Semaphore(5)
+    return _DISTILL_SEM
+
 # System prompt for Qwen distillation
 _DISTILL_SYSTEM_PROMPT = """\
 Extract the key learning from this task outcome. Respond with ONLY a JSON object \
@@ -157,8 +168,10 @@ async def distill_and_store(request: DistillRequest, store) -> None:
     RMB-08: New patterns created at confidence=0.67 (experimental tier).
     """
     try:
-        # Step 1: Distill outcome via Qwen
-        distilled = await distill_task_outcome(request.task_context, request.outcome)
+        # Step 1: Distill outcome via Qwen — prefer what_happened if provided, fall back to outcome
+        outcome_text = request.what_happened or request.outcome
+        async with _get_distill_sem():
+            distilled = await distill_task_outcome(request.task_context, outcome_text)
         if distilled is None:
             # Already logged inside distill_task_outcome
             return
@@ -177,11 +190,13 @@ async def distill_and_store(request: DistillRequest, store) -> None:
             )
         else:
             # Step 3: Create new pattern at experimental tier — RMB-08
+            # Merge distilled tags with caller-supplied tags (deduplicated)
+            merged_tags = list({*distilled.get("tags", []), *(request.tags or [])})
             new_pattern = Pattern(
                 context=distilled["context"],
                 what_worked=distilled["what_worked"],
                 what_failed=distilled.get("what_failed", ""),
-                tags=distilled.get("tags", []),
+                tags=merged_tags,
                 confidence=engine.INIT_CONFIDENCE,  # RMB-08: 0.67 (experimental)
                 tier="experimental",
                 last_updated=datetime.now(timezone.utc),

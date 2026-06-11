@@ -25,6 +25,10 @@ def filter_and_rank(
     RCL-03: Demoted patterns NEVER returned — checked first, before min_tier.
     Tag matching is OR logic: pattern needs ANY of the request tags.
     """
+    VALID_TIERS = {"gold", "production", "experimental", "demoted"}
+    if min_tier not in VALID_TIERS:
+        min_tier = "production"
+
     min_rank = TIER_RANK.get(min_tier, 2)  # unknown tier defaults to production rank
     request_tags: set[str] | None = {t.lower() for t in tags} if tags else None
 

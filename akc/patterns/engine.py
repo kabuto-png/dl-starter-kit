@@ -23,6 +23,7 @@ def classify_tier(confidence: float) -> str:
     return "demoted"
 
 
+# Invariant: confidence and tier must always agree — if tier is 'gold', confidence must be ≥ 0.85.
 def apply_outcome(pattern: dict, outcome: str) -> dict:
     delta = SUCCESS_DELTA if outcome == "success" else FAILURE_DELTA
     new_conf = max(MIN_CONFIDENCE, min(MAX_CONFIDENCE, pattern["confidence"] + delta))
@@ -38,6 +39,8 @@ def apply_outcome(pattern: dict, outcome: str) -> dict:
     # Step 2: ENG-05 — Gold exit guardrail
     elif pattern["tier"] == "gold" and new_consec < GOLD_EXIT_THRESHOLD:
         new_tier = "gold"
+        # Clamp confidence to Gold floor so tier and confidence stay in sync
+        new_conf = max(new_conf, 0.85)
     # Step 3: ENG-03 — natural tier from confidence
     else:
         new_tier = classify_tier(new_conf)

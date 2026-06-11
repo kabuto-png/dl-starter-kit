@@ -8,6 +8,7 @@ STATS-02: Records every recall query to confidence_history.jsonl.
 """
 from __future__ import annotations
 import logging
+import time
 from typing import Optional
 
 from akc.patterns.store import JsonlStore
@@ -32,6 +33,8 @@ class RecallService:
           4. Map to RecallResult models
           5. Record recall query for stats tracking (STATS-02)
         """
+        start = time.monotonic()
+
         # Step 1: load candidates
         candidates = await self._store.load_active(
             min_tier=request.min_tier,
@@ -70,6 +73,8 @@ class RecallService:
             for p in ranked
         ]
 
+        end = time.monotonic()
+
         # Step 5: record recall query for stats (STATS-02)
         await self._store.record_recall_query(result_count=len(results))
 
@@ -80,4 +85,8 @@ class RecallService:
             request.min_tier,
             request.top_k,
         )
-        return RecallResponse(patterns=results, count=len(results))
+        return RecallResponse(
+            patterns=results,
+            total_found=len(results),
+            query_ms=int((end - start) * 1000),
+        )
