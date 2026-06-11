@@ -100,6 +100,19 @@ class JsonlStore:
             }
             await asyncio.to_thread(self._append_history_sync, history_event)
 
+    async def insert_pattern(self, pattern: Pattern) -> None:
+        """Insert a new pattern into patterns.jsonl.
+
+        STORE-03: Full read-modify-write cycle held under asyncio.Lock.
+        Uses atomic write (NamedTemporaryFile + os.replace) — crash safe.
+        Last-write-wins dedup on read (STORE-01): if pattern.id already exists,
+        this insert will overwrite the existing record (same as update_pattern).
+        """
+        async with self._lock:
+            patterns = await asyncio.to_thread(self._read_patterns_sync)
+            patterns[pattern.id] = json.loads(pattern.model_dump_json())
+            await asyncio.to_thread(self._write_patterns_atomic_sync, patterns)
+
     async def save_pattern(self, pattern: Pattern) -> None:
         async with self._lock:
             patterns = await asyncio.to_thread(self._read_patterns_sync)
