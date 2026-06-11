@@ -14,3 +14,7 @@ __pycache__/
 .claude/
 plans/
 docs/
+.planning/
+tests/
+kb/
+kb_data/
