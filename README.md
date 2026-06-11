@@ -14,18 +14,55 @@ AKC solves this with a persistent, confidence-weighted knowledge base:
 - **Confidence falls** with each failure (−0.10 per failure)
 - **Gold-tier patterns surface first** on the next query — the knowledge base gets smarter over time
 
-## Quick Start
+## Installation
+
+### Option A — Local (no Docker)
+
+**Requirements:** Python 3.11+
 
 ```bash
-docker run -p 8080:8080 \
-  -e LLM_MODEL=qwen-2.5-7b-instruct \
-  -e LLM_BASE_URL=https://maas-llm-aiplatform-hcm.api.vngcloud.vn/v1 \
-  -e LLM_API_KEY=your-api-key \
-  -e MEMORY_ID=akc-demo \
-  -e AKC_KB_DIR=/app/data/kb \
-  -v /tmp/akc_data:/app/data \
-  <your-registry>/akc-service:latest
+git clone https://github.com/kabuto-png/dl-starter-kit.git
+cd dl-starter-kit
+pip install -r requirements.txt
 ```
+
+Create a `.env` file (copy and fill in your credentials):
+
+```bash
+LLM_MODEL=qwen-2.5-7b-instruct
+LLM_BASE_URL=https://maas-llm-aiplatform-hcm.api.vngcloud.vn/v1
+LLM_API_KEY=your-api-key
+MEMORY_ID=akc-demo
+AKC_KB_DIR=./kb_data
+```
+
+Start the server:
+
+```bash
+uvicorn main:app --host 0.0.0.0 --port 8080
+```
+
+### Option B — Docker Compose
+
+```bash
+git clone https://github.com/kabuto-png/dl-starter-kit.git
+cd dl-starter-kit
+```
+
+Export your credentials, then build and start:
+
+```bash
+export LLM_MODEL=qwen-2.5-7b-instruct
+export LLM_BASE_URL=https://maas-llm-aiplatform-hcm.api.vngcloud.vn/v1
+export LLM_API_KEY=your-api-key
+
+docker compose up --build
+```
+
+The service is ready when you see `AKC starting — KB_DIR: /app/data, patterns: 0` in the logs.
+Patterns are persisted in `./kb_data/` on the host.
+
+## Quick Start
 
 Verify the service is running:
 
@@ -38,10 +75,58 @@ Expected response: `{"status": "ok", "pattern_count": 0}`
 Seed demo data (30 patterns across Gold / Production / Experimental tiers):
 
 ```bash
-python scripts/seed_kb.py --kb-dir /tmp/akc_data/kb
+# Local
+python scripts/seed_kb.py --kb-dir ./kb_data
+
+# Docker (run against the mounted volume)
+python scripts/seed_kb.py --kb-dir ./kb_data
 ```
 
 Expected output: `30 patterns written` (5 Gold, 10 Production, 15 Experimental).
+
+Check the KB loaded the patterns:
+
+```bash
+curl http://localhost:8080/health
+# {"status": "ok", "pattern_count": 30}
+```
+
+## Testing the Core Loop
+
+Run through the full recall → task → remember loop manually:
+
+**1. Recall** — fetch patterns matching a task context:
+
+```bash
+curl -s -X POST http://localhost:8080/recall \
+  -H "Content-Type: application/json" \
+  -d '{"task_context": "write async file I/O in Python", "top_k": 3}' | python3 -m json.tool
+```
+
+**2. Remember** — feed back a task outcome (use a pattern `id` from the recall response):
+
+```bash
+curl -s -X POST http://localhost:8080/remember \
+  -H "Content-Type: application/json" \
+  -d '{
+    "task_context": "write async file I/O in Python",
+    "outcome": "success",
+    "patterns_used": ["<id-from-recall>"]
+  }'
+# Returns: 202 (distillation runs in background)
+```
+
+**3. Stats** — confirm confidence updated and check tier distribution:
+
+```bash
+curl -s http://localhost:8080/stats | python3 -m json.tool
+```
+
+**Via Claude Code skill** (automates all three steps):
+
+```bash
+/akc-recall-task-remember --task "write async file I/O in Python" --endpoint http://localhost:8080
+```
 
 ## API Reference
 
