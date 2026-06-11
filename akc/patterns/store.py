@@ -1,8 +1,12 @@
 import asyncio
 import json
+import logging
 import os
 import tempfile
+from datetime import datetime, timezone
 from pathlib import Path
+
+logger = logging.getLogger(__name__)
 
 from akc.patterns.models import ConfidenceEvent, Pattern
 
@@ -49,14 +53,85 @@ class JsonlStore:
         with open(self._history_path, "a", encoding="utf-8") as f:
             f.write(json.dumps(event) + "\n")
 
+    async def load_all(self, exclude_demoted: bool = False) -> list[dict]:
+        async with self._lock:
+            patterns_dict = await asyncio.to_thread(self._read_patterns_sync)
+        patterns = list(patterns_dict.values())
+        if exclude_demoted:
+            patterns = [p for p in patterns if p.get("tier") != "demoted"]
+        return sorted(patterns, key=lambda x: x.get("confidence", 0), reverse=True)
+
+    async def record_recall_query(self, result_count: int) -> None:
+        event = {
+            "type": "recall_query",
+            "result_count": result_count,
+            "timestamp": datetime.now(timezone.utc).isoformat(),
+        }
+        await asyncio.to_thread(self._append_history_sync, event)
+
     async def load_stats(self) -> dict:
         async with self._lock:
             patterns = await asyncio.to_thread(self._read_patterns_sync)
-        by_tier: dict[str, int] = {"gold": 0, "production": 0, "experimental": 0, "demoted": 0}
+        total = len(patterns)
+        by_tier = {"gold": 0, "production": 0, "experimental": 0, "demoted": 0}
+        all_confidences = []
+        all_tags = []
         for p in patterns.values():
             tier = p.get("tier", "experimental")
             by_tier[tier] = by_tier.get(tier, 0) + 1
-        return {"total": len(patterns), "by_tier": by_tier}
+            all_confidences.append(p.get("confidence", 0))
+            all_tags.extend(p.get("tags", []))
+        avg_confidence = (sum(all_confidences) / len(all_confidences) if all_confidences else 0.0)
+        tag_counts: dict[str, int] = {}
+        for tag in all_tags:
+            tag_counts[tag] = tag_counts.get(tag, 0) + 1
+        top_tags = [tag for tag, _ in sorted(tag_counts.items(), key=lambda x: x[1], reverse=True)[:10]]
+        recall_hit_rate, recently_promoted = await asyncio.to_thread(self._scan_history_sync)
+        return {
+            "total_patterns": total,
+            "by_tier": by_tier,
+            "avg_confidence": round(avg_confidence, 2),
+            "top_tags": top_tags,
+            "recall_hit_rate": recall_hit_rate,
+            "recently_promoted": recently_promoted,
+        }
+
+    def _scan_history_sync(self) -> tuple[float, list]:
+        if not self._history_path.exists():
+            return 0.0, []
+        tier_rank = {"gold": 3, "production": 2, "experimental": 1, "demoted": 0}
+        recall_queries = 0
+        recall_hits = 0
+        promotions = []
+        with open(self._history_path, encoding="utf-8") as f:
+            for line in f:
+                line = line.strip()
+                if not line:
+                    continue
+                try:
+                    event = json.loads(line)
+                except json.JSONDecodeError:
+                    logger.warning("Malformed history line, skipping: %s", line[:80])
+                    continue
+                event_type = event.get("type")
+                if event_type == "recall_query":
+                    recall_queries += 1
+                    if event.get("result_count", 0) > 0:
+                        recall_hits += 1
+                elif event_type == "confidence_update":
+                    old_tier = event.get("old_tier")
+                    new_tier = event.get("new_tier")
+                    if old_tier and new_tier:
+                        if tier_rank.get(new_tier, 0) > tier_rank.get(old_tier, 0):
+                            promotions.append({
+                                "id": event.get("pattern_id"),
+                                "old_tier": old_tier,
+                                "new_tier": new_tier,
+                                "timestamp": event.get("timestamp"),
+                            })
+        hit_rate = recall_hits / recall_queries if recall_queries > 0 else 0.0
+        recently_promoted = sorted(promotions, key=lambda x: x.get("timestamp", ""), reverse=True)[:5]
+        return hit_rate, recently_promoted
 
     async def load_active(
         self,
