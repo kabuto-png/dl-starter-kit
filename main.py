@@ -2,10 +2,12 @@ import logging
 from contextlib import asynccontextmanager
 
 import uvicorn
-from fastapi import FastAPI
+from fastapi import BackgroundTasks, FastAPI
 
 from akc.core.config import settings
 from akc.patterns.store import JsonlStore
+from akc.remember.distiller import distill_and_store
+from akc.remember.models import DistillRequest
 
 logging.basicConfig(
     level=logging.INFO,
@@ -39,6 +41,17 @@ app = FastAPI(
 async def health():
     stats = await store.load_stats()
     return {"status": "ok", "pattern_count": stats["total"]}
+
+
+@app.post("/remember", status_code=202)
+async def remember(request: DistillRequest, background_tasks: BackgroundTasks):
+    """RMB-01: Return 202 immediately; Qwen distillation runs in BackgroundTask.
+
+    The caller is never blocked by LLM latency. distill_and_store handles all
+    distillation, deduplication, storage, and confidence feedback asynchronously.
+    """
+    background_tasks.add_task(distill_and_store, request, store)
+    return {}
 
 
 if __name__ == "__main__":
