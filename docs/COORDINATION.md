@@ -89,6 +89,10 @@ dl_starter_kit/
 | 2026-06-11 PM | Feature-first FastAPI structure (per `architecture_v1.md`) | Clean isolation, swap-friendly | anh Đức |
 | 2026-06-11 PM | Storage: JSONL append-only (initial) + AgentBase Memory for semantic recall | Simple, auditable, hybrid for similarity | anh Đức |
 | 2026-06-11 | LLM model TBD: minimax-m2.5 (current `.env`) vs Qwen3 (PRD spec) | Discrepancy flagged — needs decision | open |
+| 2026-06-11 17:12 | **Distillation handled by AgentBase Memory itself, NOT a separate Qwen call in AKC code** | "khúc distill là agent base", "con agent base chỉ tổng hợp thôi"; calling agent (Claude) already pre-structures payload — AKC stays light | anh Đức |
+| 2026-06-11 17:16 | **`/remember` payload is pre-structured** by calling Claude (task, approach tried, why failed, how worked) | "việc nặng nhọc đã có claude lo" — keep AKC backend simple | anh Đức |
+| 2026-06-11 17:21 | **Agent exposes via MCP endpoint** — Claude Code connects to AKC agent as MCP tool | Standard AgentBase agent deploys with MCP-accessible API; calling agent connects once and uses `recall`/`remember` like any MCP tool | both |
+| 2026-06-11 17:19 | **Calling-side skill** (slash command for source Claude) — owns when/how to invoke `/recall` and shape `/remember` payload | Long = design owner, anh Đức = concept lead | Long |
 
 ---
 
@@ -104,6 +108,10 @@ dl_starter_kit/
 | 6 | License for public repo — confirm with team/legal | TBD | LOW | D6 |
 | 7 | Submission description (100-300 words) | chủ repo draft, anh Đức review | LOW | D7 (16/06) |
 | 8 | Repo rename: `dl-starter-kit` → `akc`? | both decide | LOW | optional |
+| 9 | **Design calling-side skill** (Claude slash command) — when/how to call `/recall` + structure `/remember` payload | **Long** (design), anh Đức (concept review) | HIGH | D3-D4 |
+| 10 | **MCP server contract** for AKC agent — confirm exact MCP tool signatures exposed by AgentBase runtime (recall/remember tool names + schemas) | chủ repo (verify via AgentBase docs) | MED | D3 |
+| 11 | **PRD update needed:** §4 (Distillation) and §7 (Architecture) describe Qwen call inside AKC — superseded by 17:12 decision. anh Đức to revise PRD or note in `architecture_v1.md`. | anh Đức | MED | D2-D3 |
+| 12 | **`/remember` payload schema** — pre-structured fields: `{task, approach_tried, why_failed, how_worked, outcome, tags}`. Lock the shape before skill design starts. | both | HIGH | D2 |
 
 ---
 
@@ -156,3 +164,57 @@ dl_starter_kit/
 - **Update this doc** when: a decision is made, a blocker resolves, a role shifts
 - **Open items §6** is the canonical TODO — keep it tight
 - **Don't archive** this file until after submission — it tracks the path
+
+---
+
+## 11. Architecture refinement (2026-06-11 17:12-17:21 chat with anh Đức)
+
+**Supersedes PRD §4 (Distillation) and §7 (Architecture) where conflicting. PRD doc to be revised by anh Đức.**
+
+```
+┌────────────────────────────────────────────┐
+│  Calling Agent (Claude Code / Qwen / ...)  │
+│  - Does heavy work: extract task, approach │
+│  - Pre-structures /remember payload         │
+│  - Decides when to /recall vs not           │
+└─────────────────┬──────────────────────────┘
+                  │
+                  │  MCP protocol
+                  ▼
+┌────────────────────────────────────────────┐
+│  AKC Agent (deployed on AgentBase)          │
+│  - Exposes MCP endpoint                     │
+│  - Thin orchestrator: receive + route       │
+│  - NO inline LLM distillation               │
+└─────────────────┬──────────────────────────┘
+                  │
+                  ▼
+┌────────────────────────────────────────────┐
+│  AgentBase Memory Service                   │
+│  - Handles "distillation" (aggregate, dedup)│
+│  - Stores Pattern records                   │
+│  - Confidence tracking + tier promotion     │
+│  - Semantic search for /recall              │
+└────────────────────────────────────────────┘
+```
+
+**Key shifts vs initial PRD:**
+
+| Aspect | PRD initial | After 17:12 chat |
+|---|---|---|
+| Distillation engine | Separate Qwen call inside AKC | **AgentBase Memory handles** it natively |
+| /remember payload | Raw `what_happened` text | **Pre-structured** by calling Claude (task / approach_tried / why_failed / how_worked) |
+| Heavy LLM work | Inside AKC service | **Inside calling agent (Claude)** |
+| Integration | HTTP REST API | **MCP endpoint** (AgentBase exposes naturally) |
+| AKC backend complexity | Moderate (FastAPI + Qwen + storage) | **Light** (FastAPI + AgentBase Memory client + thin routing) |
+
+**Calling-side skill (Long owns design):**
+
+This is a Claude Code slash command (e.g. `/akc-recall`, `/akc-remember`) that:
+- Knows the MCP endpoint URL
+- Builds structured /remember payload from current Claude task context
+- Calls /recall automatically before task execution (optional auto-trigger)
+- Interprets tier/confidence results to decide whether to use pattern
+- Lives in `~/.claude/skills/akc-*/` for any Claude user
+
+Open: where does this skill live? (separate repo for distribution, OR bundled in dl-starter-kit as `skills/` folder, OR contributed to unclaude-code).
