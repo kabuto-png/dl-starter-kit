@@ -1,0 +1,33 @@
+from typing import Optional
+
+from pydantic import BaseModel, field_validator
+
+
+class DistillRequest(BaseModel):
+    """Request body for POST /remember.
+
+    RMB-01: task_context and outcome are required fields.
+    RMB-07: patterns_used IDs trigger confidence feedback on existing patterns.
+    """
+    task_context: str                          # Required: context of the task
+    outcome: str                               # Required: raw outcome text to distill
+    patterns_used: Optional[list[str]] = None  # Optional: IDs of patterns that were applied
+    success: Optional[bool] = None             # Optional: whether the task succeeded
+
+
+class DistilledPattern(BaseModel):
+    """Structured output extracted by Qwen from raw outcome text.
+
+    RMB-03: Matches the JSON schema Qwen is prompted to produce.
+    ENG-07: Tags normalized to lowercase at validation time.
+    """
+    context: str                   # Brief description of the task scenario
+    what_worked: str               # Specific thing that succeeded
+    what_failed: str = ""          # Specific thing that failed (empty string if pure success)
+    tags: list[str] = []           # Lowercase tags describing this outcome
+
+    @field_validator("tags", mode="before")
+    @classmethod
+    def normalize_tags(cls, v: list) -> list:
+        """Normalize all tags to lowercase — matches Phase 1 ENG-07 pattern."""
+        return [t.lower() for t in v] if isinstance(v, list) else v
