@@ -19,9 +19,9 @@ logger = logging.getLogger("akc.recall.service")
 
 
 class RecallService:
-    def __init__(self, store: JsonlStore, memory_service_url: Optional[str] = None) -> None:
+    def __init__(self, store: JsonlStore, memory_id: Optional[str] = None) -> None:
         self._store = store
-        self._memory_service_url = memory_service_url
+        self._memory_id = memory_id
 
     async def query(self, request: RecallRequest) -> RecallResponse:
         """
@@ -42,8 +42,8 @@ class RecallService:
         scored = await semantic_search(
             task_context=request.task_context,
             patterns=candidates,
-            memory_service_url=self._memory_service_url,
-            timeout_sec=2.0,
+            memory_id=self._memory_id,
+            timeout_sec=10.0,
         )
 
         # Step 3: filter, rank, paginate

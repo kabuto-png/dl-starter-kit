@@ -1,6 +1,9 @@
 import logging
 from contextlib import asynccontextmanager
 
+from dotenv import load_dotenv
+load_dotenv()  # populate os.environ so GreenNode SDK can read GREENNODE_CLIENT_ID/SECRET
+
 import uvicorn
 from fastapi import BackgroundTasks, FastAPI, Request, status
 from fastapi.exceptions import RequestValidationError
@@ -27,8 +30,7 @@ logger = logging.getLogger("akc")
 store = JsonlStore(kb_dir=settings.akc_kb_dir)
 
 # Phase 3: Read path services
-_memory_service_url = getattr(settings, "memory_id", None)
-recall_svc = RecallService(store=store, memory_service_url=_memory_service_url)
+recall_svc = RecallService(store=store, memory_id=settings.memory_id)
 stats_svc = StatsService(store=store)
 export_svc = ExportService(store=store)
 
@@ -36,6 +38,22 @@ export_svc = ExportService(store=store)
 recall_router_module.recall_service = recall_svc
 stats_router_module.stats_service = stats_svc
 export_router_module.export_service = export_svc
+
+
+async def _seed_memory_service():
+    """Sync all local patterns to GreenNode Memory Service on startup. Best-effort."""
+    from akc.remember.distiller import _sync_pattern_to_memory
+    from akc.patterns.models import Pattern
+    try:
+        patterns = await store.load_active(min_tier="experimental", tags=None)
+        if not patterns:
+            return
+        for p in patterns:
+            pattern = Pattern(**p)
+            await _sync_pattern_to_memory(pattern)
+        logger.info("Memory Service seeded with %d patterns", len(patterns))
+    except Exception as exc:
+        logger.warning("Memory Service seed failed (non-fatal): %s", exc)
 
 
 @asynccontextmanager
@@ -46,6 +64,7 @@ async def lifespan(app: FastAPI):
         settings.akc_kb_dir,
         stats["total_patterns"],
     )
+    await _seed_memory_service()
     yield
     logger.info("AKC shutting down")
 

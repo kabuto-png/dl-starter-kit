@@ -118,6 +118,37 @@ async def _check_duplicate_hash(store, pattern_hash: str) -> dict | None:
     return None
 
 
+def _get_memory_client():
+    """Return shared MemoryClient so OAuth2 token is cached across calls."""
+    from akc.recall.search import get_memory_client
+    return get_memory_client()
+
+
+async def _sync_pattern_to_memory(pattern: Pattern) -> None:
+    """Insert a pattern into GreenNode Memory Service for semantic search. Best-effort — never raises."""
+    try:
+        from greennode_agentbase.memory.models import MemoryRecordInsertDirectlyRequest
+
+        memory_id = settings.memory_id
+        if not memory_id:
+            return
+
+        # Format: "[{id}] {context}: {what_worked}" — parsed by recall/search.py
+        text = f"[{pattern.id}] {pattern.context}: {pattern.what_worked}"
+        client = _get_memory_client()
+        request = MemoryRecordInsertDirectlyRequest(memoryRecords=[text])
+        await client.insert_memory_records_directly_async(
+            id=memory_id, request=request, namespace="akc-patterns"
+        )
+        logger.debug("Synced pattern to Memory Service", extra={"pattern_id": pattern.id})
+    except Exception as exc:
+        logger.warning(
+            "Failed to sync pattern to Memory Service (non-fatal): %s",
+            repr(exc),
+            extra={"pattern_id": pattern.id},
+        )
+
+
 async def distill_and_store(request: DistillRequest, store) -> None:
     """Background task: distill outcome via Qwen, deduplicate, store new pattern, update feedback.
 
@@ -162,6 +193,9 @@ async def distill_and_store(request: DistillRequest, store) -> None:
                 "Distilled and stored new pattern",
                 extra={"pattern_id": new_pattern.id, "tags": new_pattern.tags},
             )
+
+            # Step 4b: Sync to Memory Service for semantic search (best-effort)
+            await _sync_pattern_to_memory(new_pattern)
 
         # Step 5: Update confidence of patterns_used — RMB-07
         if request.patterns_used:

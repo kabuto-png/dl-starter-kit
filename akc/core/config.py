@@ -6,7 +6,7 @@ class Settings(BaseSettings):
     llm_base_url: str
     llm_api_key: str
     memory_id: str
-    akc_kb_dir: str
+    akc_kb_dir: str = "./kb_data"
 
     model_config = SettingsConfigDict(
         env_file=".env",

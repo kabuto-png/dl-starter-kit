@@ -1,6 +1,7 @@
 greennode-agentbase
 greennode-agent-bridge
-langchain>=1.2.0,<2.0.0
-langgraph>=1.0.0,<2.0.0
-langchain-openai>=1.1.0,<2.0.0
+fastapi
+uvicorn[standard]
+openai
+pydantic-settings
 python-dotenv
