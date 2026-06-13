@@ -95,6 +95,12 @@ dl_starter_kit/
 | 2026-06-11 17:19 | **Calling-side skill** (slash command for source Claude) — owns when/how to invoke `/recall` and shape `/remember` payload | Long = design owner, anh Đức = concept lead | Long |
 | 2026-06-11 17:28 | **Add OpenClaw demo client** — AKC core stays FastAPI per PRD. Build 1 OpenClaw agent (no-code markdown workspace) with skill that calls AKC. Shows AKC integration in automation workflow. | Long |
 | 2026-06-11 17:28 | **Track candidate: Automation & Integration** — pitch via demo (OpenClaw agent automating workflow, using AKC to learn) | Long (TBD with anh Đức) |
+| 2026-06-11 22:50 | **Track confirmed: Automation & Integration** (anh Đức OK switch from Self-Evolving) | anh Đức |
+| 2026-06-11 22:55 | Devil's advocate confirmed: **compliance IS the USP**. VNG-er CANNOT use external Claude/Codex on internal data (DPO blocks). Starter Kit = legal way to use AI on VNG internal data. | both |
+| 2026-06-11 22:56 | **Stop-doing list locked**: no Web UI desktop, no self-host OpenClaw, no LLM change, no re-architect, no new endpoints | both |
+| 2026-06-11 23:01 | **Use case candidate: ASO (App Store Optimization) per geo deploy** — replaces Mai UA onboarding (too generic). ASO has compound learning, compliance need, measurable metrics. To confirm with anh Đức morning D3. | anh Đức (proposed) |
+| 2026-06-11 23:05 | Persona doesn't need to be real user — demo persona = PLAUSIBLE + MEASURABLE + SHOWABLE. Mai "ví dụ" admission from Long. ASO persona = "ASO Specialist VNG Publishing" works without naming real person. | both |
+| 2026-06-11 23:06 | **Session close tonight.** Locked: Track Automation, ASO use case candidate, Stop-doing list. Awaiting morning D3: anh Đức confirm 3 items (ASO OK / LLM / /remember). vCR mail + .env fix queued for chủ repo D3 morning. | both |
 
 ---
 
