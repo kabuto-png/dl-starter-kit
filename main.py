@@ -41,17 +41,34 @@ export_router_module.export_service = export_svc
 
 
 async def _seed_memory_service():
-    """Sync all local patterns to GreenNode Memory Service on startup. Best-effort."""
+    """Sync all local patterns to GreenNode Memory Service on startup. Best-effort.
+
+    H4: _sync_pattern_to_memory swallows its own exceptions, so we cannot know
+    actual success count without an additional sentinel. Log clearly that this
+    is an ATTEMPT count, not confirmed success.
+    """
     from akc.remember.distiller import _sync_pattern_to_memory
     from akc.patterns.models import Pattern
     try:
         patterns = await store.load_active(min_tier="experimental", tags=None)
         if not patterns:
             return
+        attempted = 0
         for p in patterns:
-            pattern = Pattern(**p)
-            await _sync_pattern_to_memory(pattern)
-        logger.info("Memory Service seeded with %d patterns", len(patterns))
+            try:
+                pattern = Pattern(**p)
+                await _sync_pattern_to_memory(pattern)
+                attempted += 1
+            except Exception as inner:
+                logger.warning(
+                    "Seed pattern %s failed at Pattern construction: %s",
+                    p.get("id", "?"), inner,
+                )
+        logger.info(
+            "Memory Service seed attempted for %d/%d patterns "
+            "(actual sync success not tracked — check Memory Service warnings)",
+            attempted, len(patterns),
+        )
     except Exception as exc:
         logger.warning("Memory Service seed failed (non-fatal): %s", exc)
 

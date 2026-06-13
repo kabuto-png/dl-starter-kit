@@ -26,16 +26,25 @@ class JsonlStore:
         self._history_path = self._dir / "confidence_history.jsonl"
 
     def _read_patterns_sync(self) -> dict[str, dict]:
-        """STORE-01: last-write-wins dedup by id."""
+        """STORE-01: last-write-wins dedup by id. Corrupt lines are skipped with warning."""
         if not self._patterns_path.exists():
             return {}
         result: dict[str, dict] = {}
         with open(self._patterns_path, encoding="utf-8") as f:
-            for line in f:
+            for lineno, line in enumerate(f, start=1):
                 line = line.strip()
-                if line:
+                if not line:
+                    continue
+                try:
                     record = json.loads(line)
                     result[record["id"]] = record
+                except (json.JSONDecodeError, KeyError) as exc:
+                    # H5: defensive — skip corrupt lines so a single bad write
+                    # cannot brick the entire store. Already done for history file.
+                    import logging
+                    logging.getLogger("akc.patterns.store").warning(
+                        "Skipping corrupt line %d in patterns.jsonl: %s", lineno, exc
+                    )
         return result
 
     def _write_patterns_atomic_sync(self, records: dict[str, dict]) -> None:
@@ -165,6 +174,7 @@ class JsonlStore:
             patterns[pattern_id] = engine.apply_outcome(old, outcome)
             await asyncio.to_thread(self._write_patterns_atomic_sync, patterns)
             history_event = {
+                "type": "confidence_update",  # H7: required by _scan_history_sync
                 "pattern_id": pattern_id,
                 "outcome": outcome,
                 "old_confidence": old["confidence"],

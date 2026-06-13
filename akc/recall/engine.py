@@ -50,9 +50,15 @@ def filter_and_rank(
 
         filtered.append(p)
 
-    # Sort — prefer relevance_score from Memory Service; fall back to confidence
-    if filtered and filtered[0].get("relevance_score") is not None:
-        filtered.sort(key=lambda p: p.get("relevance_score") or 0, reverse=True)
+    # Sort — prefer relevance_score from Memory Service; fall back to confidence.
+    # M5: check across ALL filtered patterns; first element may lack relevance_score
+    # while others have it (mixed Memory hit + JSONL fallback).
+    has_relevance = any(p.get("relevance_score") is not None for p in filtered)
+    if has_relevance:
+        filtered.sort(
+            key=lambda p: (p.get("relevance_score") or 0, p.get("confidence", 0)),
+            reverse=True,
+        )
     else:
         filtered.sort(key=lambda p: p.get("confidence", 0), reverse=True)
 
