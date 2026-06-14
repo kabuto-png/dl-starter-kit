@@ -12,9 +12,9 @@
 |---|---|---|
 | Architecture + spec | **anh Đức** | `docs/prd/AKC_PRD.md`, `docs/architecture_v1.md` are authoritative |
 | Code refactor (main.py → feature-first FastAPI) | **anh Đức** | Port from `akc-service` (his original repo), strip Godot |
-| Pattern engine + distiller (Qwen) | **anh Đức** | Confidence tiers, guardrails — lifted from akc-service |
-| AgentBase resources (Memory, Identity, LLM key) | **chủ repo** | Wizard provisioning done; deploy blocked on vCR |
-| Deploy + runtime ops | **chủ repo** | Block: vCR 403, escalating to BTC |
+| Pattern engine + distiller (LLM = MiniMax M2.5 per D4 lock) | **anh Đức** | Confidence tiers, guardrails — lifted from akc-service |
+| AgentBase resources (Memory, Identity, LLM key) | **chủ repo** | Wizard provisioning done; vCR cleared D4, deploy queued D5 |
+| Deploy + runtime ops | **chủ repo** | vCR access cleared D4; D5 Docker push + Runtime create |
 | Docs index + state snapshot | **chủ repo** | `docs/06-*`, `docs/07-*` |
 | Demo video + submission packaging | **TBD** | D7 morning, both align |
 | Integration tests + smoke | **TBD** | Need post-refactor |
@@ -101,6 +101,7 @@ dl_starter_kit/
 | 2026-06-11 23:01 | **Use case candidate: ASO (App Store Optimization) per geo deploy** — replaces Mai UA onboarding (too generic). ASO has compound learning, compliance need, measurable metrics. To confirm with anh Đức morning D3. | anh Đức (proposed) |
 | 2026-06-11 23:05 | Persona doesn't need to be real user — demo persona = PLAUSIBLE + MEASURABLE + SHOWABLE. Mai "ví dụ" admission from Long. ASO persona = "ASO Specialist VNG Publishing" works without naming real person. | both |
 | 2026-06-11 23:06 | **Session close tonight.** Locked: Track Automation, ASO use case candidate, Stop-doing list. Awaiting morning D3: anh Đức confirm 3 items (ASO OK / LLM / /remember). vCR mail + .env fix queued for chủ repo D3 morning. | both |
+| 2026-06-14 D4 | **Direction LOCKED: Level L (REUSE-MAX).** 30 generic patterns + 10 ASO patterns + 2-scene demo. Backend complete (commits 60ca516, 31ee2d7 edge cases fixed). Seed distribution: 2 ASO in gold, 4 in production, 4 in experimental (default tier-mix; verified locally). Storyboard: JP cold start → KR compound recall + live tier promotion. `.env` GREENNODE_* populated. Demo persona: ASO Specialist VNG Publishing (JP/KR/VN/TH/PH geos). LLM locked: MiniMax M2.5 (E2E tested). **vCR access CLEARED D4** — D5 deploy unblocked. README updated: corrected LLM spec mismatch (was Qwen, now MiniMax), added 2-scene demo description, clarified VNG compliance USP. | both |
 
 ---
 
@@ -108,8 +109,8 @@ dl_starter_kit/
 
 | # | Item | Owner | Severity | Target |
 |---|---|---|---|---|
-| 1 | **vCR 403** — runtime deploy blocked, need `vcrFullAccess` from BTC | chủ repo (file ticket) | HIGH | D4 (13/06) |
-| 2 | LLM model: minimax-m2.5 vs Qwen3 — which one final? | anh Đức decide | MED | before D2 code work |
+| 1 | ~~vCR 403 blocker~~ — **RESOLVED D4** (access cleared) | — | — | DONE |
+| 2 | ~~LLM model: minimax-m2.5 vs Qwen3~~ — **RESOLVED D4** (MiniMax M2.5 locked, E2E tested) | — | — | DONE |
 | 3 | AgentBase Memory custom schema for Pattern struct — verify supported | chủ repo (test API) | MED | D3 (12/06) |
 | 4 | Demo dataset — seed patterns for /recall demo (need realistic examples) | TBD | LOW | D6 (15/06) |
 | 5 | Demo "fast-forward 5 successes" — scripted, seeded, or test endpoint? | TBD | LOW | D6 |
@@ -134,7 +135,7 @@ dl_starter_kit/
 | D2 | 11/06 | `/recall` + `/remember` endpoints; folder restructure | **anh Đức** | IN-PROGRESS |
 | D3 | 12/06 | LLM distillation (Qwen) | anh Đức | TODO |
 | D4 | 13/06 | AgentBase Memory integration | anh Đức + chủ repo | TODO |
-| D5 | 14/06 | Dockerize + deploy AgentBase | chủ repo (blocked on vCR) | BLOCKED |
+| D5 | 14/06 | Dockerize + deploy AgentBase | chủ repo | READY (vCR cleared) |
 | D6 | 15/06 | `/stats` + `/kb/export` + polish | both | TODO |
 | D7 morning | 16/06 | Demo video + description | both | TODO |
 | D7 noon | 17/06 12:00 | Submit | both | TODO |

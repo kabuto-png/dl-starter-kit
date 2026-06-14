@@ -4,10 +4,10 @@
 
 AKC is a stateless FastAPI service. Two core flows:
 
-- **`POST /remember`** — receive raw outcome → Qwen distills into structured pattern → store + update confidence
-- **`POST /recall`** — receive task context → search patterns by tier/tags → return ranked results
+- **`POST /remember`** — receive outcome (pre-structured by calling agent) → optionally distill via MiniMax M2.5 → store + update confidence
+- **`POST /recall`** — receive task context → search patterns via AgentBase Memory Service (with JSONL fallback) by tier/tags → return ranked by confidence
 
-Everything else (`/health`, `/stats`, `/kb/export`) is operational plumbing around this loop.
+Everything else (`/health`, `/stats`, `/kb/export`) is operational plumbing. 10 ASO-specific patterns included in default 30-pattern seed (tier distribution: 2 gold, 4 production, 4 experimental).
 
 ---
 
@@ -28,7 +28,7 @@ akc/
   remember/              # feature: record outcome after a task
     router.py            # POST /remember → 202 Accepted
     service.py           # orchestrate: distill → store → update confidence
-    distiller.py         # Qwen call → structured Pattern JSON
+    distiller.py         # LLM call (MiniMax M2.5) → structured Pattern JSON
     schemas.py           # RememberRequest
 
   stats/                 # feature: KB health snapshot
@@ -57,7 +57,7 @@ router
   └── return 202 immediately
   └── BackgroundTask:
         distiller.extract(task_context, what_happened, outcome)
-          └── Qwen via ChatOpenAI → structured Pattern JSON
+          └── ChatOpenAI (MiniMax M2.5 per .env LLM_MODEL) → structured Pattern JSON
         store.append(pattern)
         engine.update_confidence(pattern_id, outcome)
           └── success → +0.05 / failure → −0.10
@@ -99,9 +99,9 @@ main.py
 |---|---|---|
 | Config | `pydantic-settings` | Validated at startup, typed, testable |
 | Dependency injection | `FastAPI Depends()` | Swap store/LLM without touching features |
-| `/remember` async | `BackgroundTask` → 202 | Caller isn't blocked by Qwen distillation latency |
+| `/remember` async | `BackgroundTask` → 202 | Caller isn't blocked by LLM distillation latency |
 | Storage | JSONL append-only | Simple, auditable, no infra required |
-| LLM distillation | Qwen via GreenNode MaaS | Structured JSON extraction, platform-native |
+| LLM distillation | MiniMax M2.5 via GreenNode MaaS (OpenAI-compatible) | Structured JSON extraction, platform-native, configurable via `LLM_MODEL` |
 | Semantic recall | AgentBase Memory Service | Native platform, similarity search for free |
 
 ---
@@ -157,9 +157,12 @@ Demoted      < 0.50        Never returned. Preserved for audit.
 
 | Variable | Required | Description |
 |---|---|---|
-| `LLM_MODEL` | Yes | Qwen model name for distillation |
+| `LLM_MODEL` | Yes | MiniMax M2.5 model (OpenAI-compatible, MaaS endpoint) |
 | `LLM_BASE_URL` | Yes | GreenNode MaaS base URL |
 | `LLM_API_KEY` | Yes | MaaS API key |
-| `MEMORY_ID` | Yes | AgentBase Memory Service ID for semantic recall |
-| `AKC_KB_DIR` | No | Path to JSONL storage (default: `./kb`) |
+| `MEMORY_ID` | No | AgentBase Memory Service ID for semantic `/recall` (optional, falls back to JSONL if unavailable) |
+| `AKC_KB_DIR` | No | Path to JSONL storage (default: `./kb_data` local; `/app/data` in Docker) |
 | `AKC_KB_EXPORT_DIR` | No | Path for markdown exports (default: `./kb_export`) |
+| `GREENNODE_CLIENT_ID` | No | AgentBase client ID (for Memory Service auth) |
+| `GREENNODE_CLIENT_SECRET` | No | AgentBase client secret |
+| `GREENNODE_AGENT_IDENTITY` | No | Agent identity for AgentBase registration (default: `dl-starter-kit`) |

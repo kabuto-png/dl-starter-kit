@@ -194,6 +194,69 @@ EXPERIMENTAL_PATTERNS = [
     },
 ]
 
+ASO_PATTERNS = [
+    {
+        "context": "Localized keyword research for Japan iOS launch — choosing between romaji and kanji search terms",
+        "what_worked": "Pull top-50 keywords via Sensor Tower JP store filter; prioritize kanji compound terms (e.g. 放置RPG) over romaji equivalents — kanji terms show 3-5x higher search volume and lower KD for mid-tier titles",
+        "what_failed": "Copying EN keyword list through Google Translate produces unnatural romaji that JP users never type; machine-translated title keywords scored near-zero impressions in first two weeks post-launch",
+        "tags": ["aso", "keyword", "jp", "app-store"],
+    },
+    {
+        "context": "Play Store 30-character title cap enforcement — KR market title keyword stuffing",
+        "what_worked": "Front-load the highest-volume KR keyword in characters 1-10 of the title (Play Store weights title start); use Short Description (80 chars) to absorb secondary keywords; verified 18% organic impression lift in KR after reorder",
+        "what_failed": "Exceeding 30-char title cap causes Play Console to silently truncate; stuffing brand name + genre + hook into title pushed primary keyword past character 15 and dropped ranking for that term by 12 positions",
+        "tags": ["aso", "keyword", "kr", "play-store"],
+    },
+    {
+        "context": "Icon A/B test setup on App Store Connect Product Page Optimization for VN casual game",
+        "what_worked": "Run 3-variant PPO test (default + 2 treatments) for 90-day window; isolate one variable per test (color scheme vs. character prominence); VN test showed character-forward icon with warm palette lifted CVR impression→install by 14% vs. abstract icon",
+        "what_failed": "Testing icon + screenshot simultaneously makes attribution impossible; stopping PPO test before 90 days (at 60%) gave statistically inconclusive results that led to premature winner declaration",
+        "tags": ["aso", "creative", "vn", "app-store"],
+    },
+    {
+        "context": "Screenshot ordering strategy for strategy games launching in JP App Store",
+        "what_worked": "Place the highest-tension gameplay screenshot (battle/resource crisis moment) as frame 1; second frame shows progression milestone (castle upgrade); JP users respond strongly to depth signals — this sequence drove 11% higher tap-through on search results",
+        "what_failed": "Leading with tutorial or onboarding screenshot killed CTR in JP — players perceived it as casual/simple; using render art instead of real gameplay in frame 1 increased install intent but raised 1-star reviews citing bait-and-switch",
+        "tags": ["aso", "creative", "jp", "app-store"],
+    },
+    {
+        "context": "Rating prompt timing calibration to maximize 5-star conversion for mobile RPG",
+        "what_worked": "Trigger SKStoreReviewRequest / in-app review prompt at first successful guild join or level 10 clear — moment of dopamine peak; measured 4.6 average rating vs. 3.9 baseline when prompt fired at app open session 3",
+        "what_failed": "Prompting at session 2 before player invests (< 10 min playtime) yields low response rate and disproportionate negative reviews from churned users; firing on every cold launch violates App Store guidelines and risks prompt suppression",
+        "tags": ["aso", "conversion", "app-store"],
+    },
+    {
+        "context": "Localized store listing copy for KR Play Store — avoiding machine-translation pitfalls in description",
+        "what_worked": "Hire native KR copywriter with gaming background; use honorific register (합쇼체) for feature bullets; seed description with 5-6 naturally occurring high-volume KR keywords confirmed via data.ai keyword tool — achieved top-10 rank for 3 target terms within 60 days",
+        "what_failed": "DeepL + light human review produced grammatically correct but tonally flat Korean that tested poorly with focus group (felt corporate/foreign); keyword density from direct translation rarely matches KR search behavior patterns",
+        "tags": ["aso", "localization", "kr", "play-store"],
+    },
+    {
+        "context": "Apple editorial featured placement submission for VN App Store — timing and asset requirements",
+        "what_worked": "Submit via App Store Connect editorial form 8 weeks before target feature date; include 1920x1080 artwork (no text overlay) + localized pitch deck citing VN DAU growth; tie submission to national holiday window (Tết) for editorial relevance",
+        "what_failed": "Submitting 2 weeks before launch window is too late for editorial review cycle; using global hero art without VN localization signals low market investment and reduces editorial pick probability",
+        "tags": ["aso", "creative", "vn", "app-store"],
+    },
+    {
+        "context": "Release cadence impact on Play Store ranking algorithm — update frequency vs. ranking stability",
+        "what_worked": "Ship minor updates (bug fix + small content drop) every 3-4 weeks to maintain freshness signal; major content updates timed to within 2 weeks of seasonal peak (Golden Week JP, Lunar New Year KR/VN) to capture surge traffic at high ranking velocity",
+        "what_failed": "Releasing major updates daily during first 30 days suppressed ranking due to repeated re-indexing; going 8+ weeks without any update caused progressive ranking decay of 15-20 positions for mid-volume keywords",
+        "tags": ["aso", "release", "play-store"],
+    },
+    {
+        "context": "Competitor reverse-engineering via Sensor Tower for JP casual market — pre-launch keyword gap analysis",
+        "what_worked": "Pull top-5 competitor keyword lists in Sensor Tower JP App Intelligence; identify keywords where competitors rank 6-20 (contestable) with >10K monthly searches; build title + subtitle + keyword field around these gaps — captured 4 first-page ranks on launch day",
+        "what_failed": "Targeting keywords where top competitor ranks 1-3 with 500K+ downloads is near-impossible for new titles; Sensor Tower volume estimates for JP are ±30% — validate against App Annie (data.ai) before committing to keyword strategy",
+        "tags": ["aso", "keyword", "jp", "app-store"],
+    },
+    {
+        "context": "Tier-1 country soft-launch sequencing to optimize KR and JP full launch conversion data",
+        "what_worked": "Soft-launch in TH/PH (culturally adjacent, lower CPI) for 6 weeks to collect D1/D7 retention benchmarks; use Play Console country targeting to gate KR/JP; fix conversion funnel issues surfaced in soft-launch before entering KR/JP where CPI is 4-6x higher",
+        "what_failed": "Soft-launching directly in KR without prior data led to $8 CPI with 18% D1 retention — below breakeven; skipping soft-launch entirely and going global day-one exposed poor onboarding to JP store algorithm before optimization window closed",
+        "tags": ["aso", "conversion", "kr", "jp", "play-store"],
+    },
+]
+
 
 def parse_args() -> argparse.Namespace:
     parser = argparse.ArgumentParser(
@@ -236,9 +299,13 @@ def generate_patterns(tier_mix: dict, seed: int) -> list[dict]:
 
     patterns = []
 
-    # Source lists: GOLD_PATTERNS (5 entries), PRODUCTION_PATTERNS (10 entries), EXPERIMENTAL_PATTERNS (15 entries)
+    # ASO patterns first so they appear in default 30-seed even when count <= len(generic list)
+    gold_sources = ASO_PATTERNS[:2] + GOLD_PATTERNS
+    production_sources = ASO_PATTERNS[2:6] + PRODUCTION_PATTERNS
+    experimental_sources = ASO_PATTERNS[6:10] + EXPERIMENTAL_PATTERNS
+
     for i in range(tier_mix.get("gold", 5)):
-        base = GOLD_PATTERNS[i % len(GOLD_PATTERNS)]
+        base = gold_sources[i % len(gold_sources)]
         pattern = {
             **base,
             "confidence": round(random.uniform(0.85, 0.95), 4),
@@ -250,7 +317,7 @@ def generate_patterns(tier_mix: dict, seed: int) -> list[dict]:
         patterns.append(pattern)
 
     for i in range(tier_mix.get("production", 10)):
-        base = PRODUCTION_PATTERNS[i % len(PRODUCTION_PATTERNS)]
+        base = production_sources[i % len(production_sources)]
         pattern = {
             **base,
             "confidence": round(random.uniform(0.70, 0.84), 4),
@@ -262,7 +329,7 @@ def generate_patterns(tier_mix: dict, seed: int) -> list[dict]:
         patterns.append(pattern)
 
     for i in range(tier_mix.get("experimental", 15)):
-        base = EXPERIMENTAL_PATTERNS[i % len(EXPERIMENTAL_PATTERNS)]
+        base = experimental_sources[i % len(experimental_sources)]
         pattern = {
             **base,
             "confidence": round(random.uniform(0.50, 0.69), 4),

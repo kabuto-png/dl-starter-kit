@@ -85,24 +85,24 @@ After installing skills:
 ```
 /agentbase
 ```
-Shows: all provisioned resources, quotas, project state.
+Shows: all provisioned resources, quotas, project state, Runtime status.
 
-### 2. Real-time monitoring
-```
-/agentbase-monitor
-```
-Shows: runtime health, memory queries/latency, LLM usage.
-
-### 3. Memory store inspection
+### 2. Memory store inspection (once Runtime deployed)
 ```
 /agentbase-memory
 ```
-Shows: strategies list, record counts, custom schema state.
-
 Input Memory ID from [`docs/06-agentbase-state-snapshot.md`](06-agentbase-state-snapshot.md):
 ```
 memory-d9b9d688-9a28-446c-841a-c70b59cdc446
 ```
+
+Shows: strategies list, pattern record counts, semantic search logs.
+
+### 3. Real-time monitoring (once Runtime deployed)
+```
+/agentbase-monitor
+```
+Shows: runtime health, `/recall` latency, LLM token usage, `/remember` background task status.
 
 ---
 
@@ -119,7 +119,7 @@ Both developer + lead work with **SAME resources:**
 
 **Guard rails:**
 - Do NOT run `/agentbase-teardown` without explicit lead approval (destroys all resources)
-- Do NOT `/agentbase-deploy` until vCR 403 unblocked (lead will confirm)
+- vCR access cleared D4 — `/agentbase-deploy` ready; lead will coordinate D5 push to avoid duplicate runtime creation
 - Do NOT push secrets to public repo (API key, credentials in `.env` only, gitignored)
 
 ---
@@ -176,4 +176,4 @@ Expected: Both tests print success (strategy names, LLM response).
 
 ---
 
-**Document version:** 2026-06-11 | **Audience:** Partner onboarding
+**Document version:** 2026-06-14 (D4) | **Audience:** Partner onboarding

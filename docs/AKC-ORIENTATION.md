@@ -2,7 +2,7 @@
 
 **Audience:** anh Đức (hoặc bất kỳ ai mới vào)
 **Mục đích:** Đọc 5 phút hiểu được cuộc thi, AKC giải quyết gì, sao mình win.
-**Last updated:** 2026-06-11
+**Last updated:** 2026-06-14 (D4 checkpoint)
 
 ---
 
@@ -99,73 +99,67 @@ Cuộc thi list 3 track theo function (Assistant / Data / Automation). AKC nằm
 
 ---
 
-## 4. Mình đã làm được gì
+## 4. Làm được gì (D4 state)
 
-### Backend (anh Đức build, DONE)
+### Backend (anh Đức + team, DONE)
 
-```
-akc/
-├── core/config.py           # pydantic-settings env validation
-├── patterns/                # Pattern model + JSONL store + confidence engine
-├── recall/                  # POST /recall — AgentBase Memory search + JSONL fallback
-├── remember/                # POST /remember — Qwen distillation → Pattern
-├── stats/                   # GET /stats — KB health snapshot
-└── export/                  # POST /kb/export — markdown export Gold + Production
+✅ Feature-complete: all 5 endpoints (`/health`, `/recall`, `/remember`, `/stats`, `/kb/export`)
+✅ 16 feature commits since D1 + Round 1 audit fixes (60ca516) + Round 2 edge cases (31ee2d7)
+✅ Seed patterns: 30 generic + **10 ASO patterns** (keyword, localization, creative, launch sequencing)
+✅ Confidence engine: Gold guardrail, tier promotion/demotion, JSONL storage
+✅ `.env` populated: GREENNODE_* vars set for Memory Service sync
+✅ MiniMax M2.5 E2E tested successfully
 
-main.py                      # FastAPI app factory + health
-Dockerfile                   # non-root user, uvicorn, VOLUME
-docker-compose.yml           # local volume persistence
-scripts/seed_kb.py           # 30 seed patterns (Python/Docker generic — TO RESEED VNG)
-.claude/skills/akc-recall-task-remember/SKILL.md   # Claude Code skill
-.planning/                   # 5 phases × 3-4 plans = 16 plans, all DONE
-```
+### Direction LOCKED (Level L = REUSE-MAX)
 
-### E2E test (DONE)
+✅ Keep 30 generic seed patterns (5 gold, 10 production, 15 experimental)
+✅ Add 10 ASO-specific patterns (keyword research, localization, creative A/B test, release cadence, competitor analysis, soft-launch sequencing) → all 10 surface in default seed via tier distribution
+✅ Demo persona: ASO Specialist VNG Publishing, multi-geo launch (JP/KR/VN/TH/PH)
+✅ 2-scene storyboard drafted: Scene 1 (JP cold start), Scene 2 (KR compound recall + tier promotion live)
 
-- ✅ `/health` 200, 30 patterns
-- ✅ `/recall` returns 3 Gold patterns ranked
-- ✅ `/remember` 202 + MiniMax distill success
-- ✅ `/stats` 31 patterns (30 seed + 1 new)
+### Round 2 Edge Cases (FIXED)
 
-### Issues found (audit 14, triage 4 Must-Fix)
-
-1. `skill/SKILL.md` missing path (Critical)
-2. `/remember` field contract mismatch PRD (High)
-3. Memory Service URL config wrong → fallback local (High)
-4. Prompt injection in distillation (High)
+1. ✅ Empty input guards (tag dedup, null context)
+2. ✅ JSONL parse defense (malformed lines)
+3. ✅ `/stats` field consistency (all tiers always present)
+4. ✅ Memory Service retry logic + timeout handling
 
 ---
 
-## 5. Còn lại 5 ngày (D2 tối → D7 trưa)
+## 5. Lộ trình còn lại (D4 → D7)
 
-| Day | Việc | Owner |
-|---|---|---|
-| D2 tối (HÔM NAY) | Mail BTC vCR 403, fix Memory URL, chốt LLM (MiniMax/Qwen) | chủ repo |
-| D3 12/06 | Reseed 30 patterns VNG context + provision OpenClaw managed (Marketplace 1-Click) | both |
-| D4 13/06 | Fix 4 Must-Fix issues | anh Đức |
-| D5 14/06 | Deploy AKC lên AgentBase Runtime, dress rehearsal | chủ repo |
-| D6 15/06 | Record demo video 2-3 min, viết use case 200 words | both |
-| D7 16-17/06 | Backup, submit trước 12:00 | both |
+| Day | Việc | Owner | Status |
+|---|---|---|---|
+| D5 14/06 | Deploy AKC lên AgentBase Runtime (vCR access cleared D4) | chủ repo | READY |
+| D6 15/06 | Record demo video 2-3 min, viết use case 200 words | both | READY |
+| D7 16-17/06 | Submit trước 12:00 GMT+7 | both | ON TRACK |
 
 ---
 
-## 6. Demo storyboard (OpenClaw managed + Claude Code, cinematic VNG context)
+## 6. Demo storyboard (ASO specialist, 2-scene)
 
-| Time | Scene |
-|---|---|
-| 0:00-0:30 | **Pain**: team UA VNG xử lý feedback từ 5 kênh (Zalo, mail, Sheet, Jira, portal) thủ công |
-| 0:30-1:00 | OpenClaw bot (Telegram channel) nhận feedback → gọi AKC `/recall` → trả Gold pattern → bot apply phân loại → done |
-| 1:00-1:30 | Edge case mới: bot xử lý sai → `/remember` outcome=failure → pattern mới Experimental |
-| 1:30-2:00 | Fast-forward 5 case tương tự, Claude Code (skill) + OpenClaw cùng ghi → confidence rise lên Gold |
-| 2:00-2:30 | `/stats` show patterns growing, hit rate tăng. **Pitch: "Không viết rule. System tự học."** |
+**Scene 1: JP Cold Start** (0:00-1:00)
+- Specialist: "Launching game in Japan. Need keyword strategy."
+- Calls `/recall` → AKC returns top-3 Gold ASO patterns (kanji vs romaji, competitor reverse-engineer)
+- Applies guidance: selects 5 primary keywords using Sensor Tower + kanji strategy
+- Files keywords to Play Console
+
+**Scene 2: KR Compound + Tier Promotion** (1:00-2:00)
+- Later session, KR launch task
+- `/recall` → returns KR-specific patterns (30-char title cap, Play Store keyword weighting)
+- Applies guidance, sees success → `/remember` with outcome=success → pattern confidence rises
+- Meanwhile, failed KR title strategy from Session 1 triggers demotion
+- `/stats` shows tier distribution: more Gold, fewer Experimental. Hit rate +15%
+- **Pitch:** "No rule updates. System learned from one success and one failure. Next time, only tested strategies surface first."
 
 ---
 
-## 7. 3 quyết định cần anh Đức confirm
+## 7. Quyết định locked (D4)
 
-1. **Track final = Automation & Integration** (switch từ Self-Evolving). Cinematic demo OpenClaw + Claude Code + AKC. Code không đổi, chỉ pitch + use case. Ý kiến anh?
-2. **LLM final: MiniMax-M2.5 (e2e đã pass) hay Qwen-2.5-7b (README spec)?** Tại sao có drift?
-3. **`/remember` field contract align về PRD §5.2?** Hay update PRD theo current code?
+1. ✅ **Track = Automation & Integration** — pitch via 2-scene ASO demo (OpenClaw + Claude Code + AKC backend)
+2. ✅ **LLM = MiniMax M2.5** — E2E tested, production-ready. (Note: README previously mentioned Qwen — error resolved)
+3. ✅ **Direction = Level L (REUSE-MAX)** — 30 generic + 10 ASO + 2-scene demo. Code stable, no new features.
+4. ✅ **vCR access** — cleared D4. D5 Docker push + Runtime create unblocked.
 
 ---
 
@@ -183,11 +177,9 @@ scripts/seed_kb.py           # 30 seed patterns (Python/Docker generic — TO RE
 
 ---
 
-## 9. Open questions
+## 9. Open items (D4 → D7)
 
-1. Track final = Automation & Integration (cinematic OpenClaw managed + Claude Code)?
-2. LLM final = MiniMax hay Qwen?
-3. `/remember` shape align về PRD?
-4. Anh có sample feedback UA thật (synthetic) để reseed không? Hay em tự draft?
-5. Ai quay video D6? Phân vai narrator + screen capture?
-6. vCR 403 status — anh có liên hệ BTC chưa hay em mail?
+1. **Demo script D6** — finalize storyboard, assign narrator + screen capture roles
+2. **Use case description** — draft 200-word ASO workflow summary for submission
+3. **L direction final confirmation** — pending anh Đức Telegram ack (non-blocking, em proceed with deploy)
+4. **Submission checklist** — repo PUBLIC, demo video link, use case description

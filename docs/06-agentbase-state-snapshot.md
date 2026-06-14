@@ -1,4 +1,4 @@
-# AgentBase State Snapshot (2026-06-11)
+# AgentBase State Snapshot (2026-06-14 D4)
 
 **Purpose:** Snapshot of provisioned AgentBase resources. State file `.agentbase-state.json` is gitignored. This doc gives partner visibility into IDs/configuration for direct AgentBase queries without needing Claude Code skills.
 
@@ -10,10 +10,11 @@
 |-------|-------|
 | **Project name** | dl-starter-kit |
 | **Agent Identity** | dl-starter-kit |
-| **Track** | General / Self-Evolving Agent |
-| **Deadline** | 2026-06-17 12:00 GMT+7 |
+| **Track** | **Automation & Integration** |
+| **Submission Deadline** | 2026-06-17 12:00 GMT+7 |
 | **Repo** | https://github.com/kabuto-png/dl-starter-kit (PUBLIC) |
 | **Team** | DL Starter Kit (Nhóm 1), 2 developers |
+| **Status** | Backend COMPLETE, awaiting AgentBase Runtime deploy |
 
 ---
 
@@ -24,10 +25,10 @@
 | **Memory store ID** | memory-d9b9d688-9a28-446c-841a-c70b59cdc446 |
 | **Strategies registered** | `default` → ltms-e8faffe3-522c-4590-815a-7abc4aaa20b8 |
 | | `la-ban-ai-coach` → ltms-6e1ad541-59dd-41c3-8b94-6fdac6fdcfe2 |
-| **Currently using** | `la-ban-ai-coach` (legacy from prior direction) |
-| **Per PRD §5** | May need new `akc-patterns` CUSTOM strategy with Pattern schema (confidence tier enum, tags array, times_applied/times_succeeded counters) |
+| **Currently using** | `default` |
+| **Pattern schema** | JSONL store local (patterns.jsonl + confidence_history.jsonl). AgentBase Memory Service used for semantic `/recall` search (fallback if unavailable). |
 
-**Action:** Verify Memory Service supports custom schemas for Pattern struct. Current strategies fit La Bàn AI coach role extraction; AKC requires richer typed storage.
+**Update (D4):** JSONL primary storage is stable; AgentBase Memory integration for semantic recall is optional (timeout 2s fallback to tag-based filter). Memory Service custom schema not required for MVP — patterns stored as JSONL locally.
 
 ---
 
@@ -35,27 +36,26 @@
 
 | Field | Value |
 |-------|-------|
-| **Model** | minimax/minimax-m2.5 |
+| **Model** | **minimax/minimax-m2.5** (LOCKED, E2E tested) |
 | **Base URL** | https://maas-llm-aiplatform-hcm.api.vngcloud.vn/v1 |
 | **API key source** | BTC-provided AIP key (in `.env`, NEVER expose) |
 | **Key in .env as** | `LLM_API_KEY` |
-| **DISCREPANCY FLAG** | PRD §10 specifies Qwen3; current config is minimax. Team decision needed before Phase 2 (Jun 12). Impact: distillation prompt tuning, confidence calibration. |
 
-**Workaround:** Minimax-m2.5 can be used for MVP if structured extraction works in testing (Phase 2 testing will reveal). If results poor, escalate to BTC for Qwen3 quota.
+**Update (D4):** LLM model locked to MiniMax M2.5. E2E testing complete (distillation, pattern generation, confidence updates all pass). README previously stated Qwen — corrected to MiniMax M2.5.
 
 ---
 
-## Wizard State
+## Deployment State
 
 | Field | Value |
 |-------|-------|
-| **Current step** | 8 (Deploy) — PAUSED |
-| **Blocker** | vCR 403 Forbidden — requires `vcrFullAccess` permission from BTC |
-| **Escalation** | Contact helpdesk@vng.com.vn with project name + request vcrFullAccess |
-| **Next action** | Unblock vCR → `/agentbase-deploy` → customize code/coach pipeline (Phase 3) |
+| **Current step** | 8 (Deploy) — READY |
+| **vCR access** | CLEARED D4 (verified push capability) |
+| **Next action** | Docker build → push to vCR → `/agentbase-deploy` → Runtime creation |
 | **Deploy preferences** | flavor=runtime-s2-general-4x8, platform=linux/amd64, replicas=1 |
-| **Local test status** | PASSED |
-| **Runtime ID** | Not yet deployed |
+| **Local test status** | PASSED (all 5 endpoints functional; seed 30 patterns incl. 10 ASO verified) |
+| **Runtime ID** | Not yet created (D5 target) |
+| **Target date** | D5 2026-06-14 |
 
 ---
 
@@ -123,7 +123,7 @@ Partner (anh Đức) can use unclaude-code skills for deeper inspection:
 | `/agentbase-monitor` | Real-time resource state (runtime health, memory queries, LLM latency) |
 | `/agentbase-memory` | Memory store internals, strategy behavior, search logs |
 | `/agentbase-llm` | Available models, quota usage, latency profile |
-| `/agentbase-deploy` | Build status, vCR push, runtime creation (BLOCKED on vCR 403) |
+| `/agentbase-deploy` | Build status, vCR push, runtime creation (READY — vCR access cleared D4) |
 | `/agentbase-identity` | Agent identity SSO config, permission scope |
 
 See [`docs/07-partner-claude-setup.md`](07-partner-claude-setup.md) for install + first-run commands.
@@ -132,12 +132,11 @@ See [`docs/07-partner-claude-setup.md`](07-partner-claude-setup.md) for install 
 
 ## Next Steps
 
-1. **Jun 12 (Phase 2):** Test distillation with current LLM model; if results poor, escalate model to Qwen3
-2. **Jun 12 (Phase 2):** Verify Memory Service custom schema support for Pattern struct
-3. **Before Jun 14 (Phase 4):** Unblock vCR 403 (BTC escalation)
-4. **Jun 14 (Phase 4):** Deploy to AgentBase, get live runtime endpoint
-5. **Jun 15 (Phase 5):** Monitor /stats, /health, query latency via `/agentbase-monitor`
+1. **D5 (next):** Docker build + push vCR → `agentbase-deploy` → create Runtime
+2. **D5 (dress rehearsal):** Smoke test deployed endpoint with seeded KB + Claude Code skill loop
+3. **D6:** Monitor runtime health, demo video recording + use case description
+4. **D7 (before 12:00):** Final submission
 
 ---
 
-**Taken:** 2026-06-11 12:00 GMT+7 | **Status:** CURRENT
+**Updated:** 2026-06-14 14:00 GMT+7 | **Status:** CURRENT (D4 checkpoint)
