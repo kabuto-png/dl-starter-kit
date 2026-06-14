@@ -9,8 +9,8 @@ class DistillRequest(BaseModel):
     RMB-01: task_context and outcome are required fields.
     RMB-07: patterns_used IDs trigger confidence feedback on existing patterns.
     """
-    task_context: str = Field(..., max_length=4000)              # Required: context of the task
-    outcome: str = Field(..., max_length=8000)                   # Required: raw outcome text to distill
+    task_context: str = Field(..., min_length=1, max_length=4000)  # Required: context of the task
+    outcome: str = Field(..., min_length=1, max_length=8000)       # Required: raw outcome text to distill
     what_happened: Optional[str] = Field(None, max_length=8000) # Optional: detailed description of what occurred
     tags: Optional[list[str]] = None                             # Optional: caller-supplied tags for the new pattern
     patterns_used: Optional[list[str]] = None                    # Optional: IDs of patterns that were applied

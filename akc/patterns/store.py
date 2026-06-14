@@ -93,9 +93,11 @@ class JsonlStore:
         avg_confidence = (sum(all_confidences) / len(all_confidences) if all_confidences else 0.0)
         tag_counts: dict[str, int] = {}
         for tag in all_tags:
-            tag_counts[tag] = tag_counts.get(tag, 0) + 1
+            # H3 fix: case-insensitive dedup — "Python" and "python" count as same tag
+            key = tag.lower() if isinstance(tag, str) else tag
+            tag_counts[key] = tag_counts.get(key, 0) + 1
         top_tags = [tag for tag, _ in sorted(tag_counts.items(), key=lambda x: x[1], reverse=True)[:10]]
-        recall_hit_rate, recently_promoted = await asyncio.to_thread(self._scan_history_sync)
+        recall_hit_rate, recently_promoted, total_queries, total_outcomes = await asyncio.to_thread(self._scan_history_sync)
         return {
             "total_patterns": total,
             "by_tier": by_tier,
@@ -103,14 +105,18 @@ class JsonlStore:
             "top_tags": top_tags,
             "recall_hit_rate": recall_hit_rate,
             "recently_promoted": recently_promoted,
+            # PRD §5 compliance
+            "total_queries": total_queries,
+            "total_outcomes_recorded": total_outcomes,
         }
 
-    def _scan_history_sync(self) -> tuple[float, list]:
+    def _scan_history_sync(self) -> tuple[float, list, int, int]:
         if not self._history_path.exists():
-            return 0.0, []
+            return 0.0, [], 0, 0
         tier_rank = {"gold": 3, "production": 2, "experimental": 1, "demoted": 0}
         recall_queries = 0
         recall_hits = 0
+        outcomes_recorded = 0
         promotions = []
         with open(self._history_path, encoding="utf-8") as f:
             for line in f:
@@ -128,6 +134,7 @@ class JsonlStore:
                     if event.get("result_count", 0) > 0:
                         recall_hits += 1
                 elif event_type == "confidence_update":
+                    outcomes_recorded += 1
                     old_tier = event.get("old_tier")
                     new_tier = event.get("new_tier")
                     if old_tier and new_tier:
@@ -140,7 +147,7 @@ class JsonlStore:
                             })
         hit_rate = recall_hits / recall_queries if recall_queries > 0 else 0.0
         recently_promoted = sorted(promotions, key=lambda x: x.get("timestamp", ""), reverse=True)[:5]
-        return hit_rate, recently_promoted
+        return hit_rate, recently_promoted, recall_queries, outcomes_recorded
 
     async def load_active(
         self,

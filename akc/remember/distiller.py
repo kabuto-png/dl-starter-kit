@@ -135,29 +135,51 @@ def _get_memory_client():
     return get_memory_client()
 
 
-async def _sync_pattern_to_memory(pattern: Pattern) -> None:
-    """Insert a pattern into GreenNode Memory Service for semantic search. Best-effort — never raises."""
-    try:
-        from greennode_agentbase.memory.models import MemoryRecordInsertDirectlyRequest
+async def _sync_pattern_to_memory(pattern: Pattern, max_attempts: int = 2) -> bool:
+    """Insert a pattern into GreenNode Memory Service for semantic search.
 
-        memory_id = settings.memory_id
-        if not memory_id:
-            return
+    Best-effort — never raises. Returns True on success, False on permanent failure.
 
-        # Format: "[{id}] {context}: {what_worked}" — parsed by recall/search.py
-        text = f"[{pattern.id}] {pattern.context}: {pattern.what_worked}"
-        client = _get_memory_client()
-        request = MemoryRecordInsertDirectlyRequest(memoryRecords=[text])
-        await client.insert_memory_records_directly_async(
-            id=memory_id, request=request, namespace="akc-patterns"
-        )
-        logger.debug("Synced pattern to Memory Service", extra={"pattern_id": pattern.id})
-    except Exception as exc:
-        logger.warning(
-            "Failed to sync pattern to Memory Service (non-fatal): %s",
-            repr(exc),
-            extra={"pattern_id": pattern.id},
-        )
+    H4 (R2): one retry with 1s backoff to handle transient Memory Service hiccups
+    that would otherwise cause JSONL/Memory divergence mid-demo. Failure leaves
+    a clear SYNC_FAILED marker in logs for grep-based reconciliation.
+    """
+    from greennode_agentbase.memory.models import MemoryRecordInsertDirectlyRequest
+
+    memory_id = settings.memory_id
+    if not memory_id:
+        return False
+
+    # Format: "[{id}] {context}: {what_worked}" — parsed by recall/search.py
+    text = f"[{pattern.id}] {pattern.context}: {pattern.what_worked}"
+    request = MemoryRecordInsertDirectlyRequest(memoryRecords=[text])
+
+    last_exc: Exception | None = None
+    for attempt in range(1, max_attempts + 1):
+        try:
+            client = _get_memory_client()
+            await client.insert_memory_records_directly_async(
+                id=memory_id, request=request, namespace="akc-patterns"
+            )
+            logger.debug(
+                "Synced pattern to Memory Service (attempt %d)",
+                attempt,
+                extra={"pattern_id": pattern.id},
+            )
+            return True
+        except Exception as exc:
+            last_exc = exc
+            if attempt < max_attempts:
+                await asyncio.sleep(1.0)  # transient hiccup backoff
+
+    logger.warning(
+        "SYNC_FAILED: pattern %s did not sync to Memory after %d attempts: %s",
+        pattern.id,
+        max_attempts,
+        repr(last_exc),
+        extra={"pattern_id": pattern.id, "sync_failed": True},
+    )
+    return False
 
 
 async def distill_and_store(request: DistillRequest, store) -> None:

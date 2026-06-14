@@ -6,7 +6,7 @@ _VALID_TIERS = {"gold", "production", "experimental", "demoted"}
 
 
 class RecallRequest(BaseModel):
-    task_context: str
+    task_context: str = Field(..., min_length=1, max_length=4000)
     tags: list[str] | None = None
     top_k: int = Field(default=5, ge=1, le=100)
     min_tier: str = "production"
