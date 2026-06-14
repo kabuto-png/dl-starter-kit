@@ -4,7 +4,7 @@
 
 AKC is a stateless FastAPI service. Two core flows:
 
-- **`POST /remember`** — receive outcome (pre-structured by calling agent) → optionally distill via MiniMax M2.5 → store + update confidence
+- **`POST /remember`** — receive outcome (pre-structured by calling agent) → optionally distill via Gemma 4-31b-it (OpenAI-compatible, configurable via LLM_MODEL env) → store + update confidence
 - **`POST /recall`** — receive task context → search patterns via AgentBase Memory Service (with JSONL fallback) by tier/tags → return ranked by confidence
 
 Everything else (`/health`, `/stats`, `/kb/export`) is operational plumbing. 10 ASO-specific patterns included in default 30-pattern seed (tier distribution: 2 gold, 4 production, 4 experimental).
@@ -28,7 +28,7 @@ akc/
   remember/              # feature: record outcome after a task
     router.py            # POST /remember → 202 Accepted
     service.py           # orchestrate: distill → store → update confidence
-    distiller.py         # LLM call (MiniMax M2.5) → structured Pattern JSON
+    distiller.py         # LLM call (Gemma 4-31b-it, OpenAI-compatible) → structured Pattern JSON
     schemas.py           # RememberRequest
 
   stats/                 # feature: KB health snapshot
@@ -57,7 +57,7 @@ router
   └── return 202 immediately
   └── BackgroundTask:
         distiller.extract(task_context, what_happened, outcome)
-          └── ChatOpenAI (MiniMax M2.5 per .env LLM_MODEL) → structured Pattern JSON
+          └── ChatOpenAI (Gemma 4-31b-it per .env LLM_MODEL, swappable) → structured Pattern JSON
         store.append(pattern)
         engine.update_confidence(pattern_id, outcome)
           └── success → +0.05 / failure → −0.10
@@ -101,7 +101,7 @@ main.py
 | Dependency injection | `FastAPI Depends()` | Swap store/LLM without touching features |
 | `/remember` async | `BackgroundTask` → 202 | Caller isn't blocked by LLM distillation latency |
 | Storage | JSONL append-only | Simple, auditable, no infra required |
-| LLM distillation | MiniMax M2.5 via GreenNode MaaS (OpenAI-compatible) | Structured JSON extraction, platform-native, configurable via `LLM_MODEL` |
+| LLM distillation | Gemma 4-31b-it via GreenNode MaaS (OpenAI-compatible, swappable) | Structured JSON extraction, 9x faster than MiniMax M2.5, cheaper, configurable via `LLM_MODEL` env |
 | Semantic recall | AgentBase Memory Service | Native platform, similarity search for free |
 
 ---
@@ -157,7 +157,7 @@ Demoted      < 0.50        Never returned. Preserved for audit.
 
 | Variable | Required | Description |
 |---|---|---|
-| `LLM_MODEL` | Yes | MiniMax M2.5 model (OpenAI-compatible, MaaS endpoint) |
+| `LLM_MODEL` | Yes | Gemma 4-31b-it (OpenAI-compatible, MaaS endpoint, configurable) |
 | `LLM_BASE_URL` | Yes | GreenNode MaaS base URL |
 | `LLM_API_KEY` | Yes | MaaS API key |
 | `MEMORY_ID` | No | AgentBase Memory Service ID for semantic `/recall` (optional, falls back to JSONL if unavailable) |

@@ -1,21 +1,36 @@
-# AKC — Agent Knowledge Collective
+# AKC — Agent Knowledge Catalyst
 
-HTTP API powering persistent, confidence-weighted memory for AI agents. Patterns rise to **Gold** tier through successful use, fall to **Demoted** when they fail.
+**AI agents that learn from your team — without retraining.**
 
-> Built for Anthropic's Claw-a-thon 2026, Track: **Automation & Integration**
+AKC stores what worked, what failed, what's still being tested. Compounding knowledge per task, structured for retrieval, self-correcting via confidence tiers. Reference deployment runs on VNG's internal AgentBase as a compliance-class architecture pattern for any DPO-bound enterprise.
 
-## The Problem
+> Built for Anthropic's Claw-a-thon 2026 — Track: **Automation & Integration**
 
-VNG internal teams cannot use external Claude/Codex on internal data (data protection officer blocks external AI exposure). Yet agents learning from domain-specific patterns — ASO keyword strategy, feedback triage, content localization — drives measurable business value.
+## What AKC does
 
-## The Solution
+- **Structured patterns** (not chat logs): each entry has `context`, `what_worked`, `what_failed`, `tags`, `confidence`
+- **Tier system** (Gold ≥0.85, Production ≥0.70, Experimental ≥0.50, Demoted <0.50) — high-confidence patterns surface first; wrong advice auto-demotes
+- **Self-improving loop**: `/recall` fetches guidance, agent executes, `/remember` reports outcome → patterns rise/fall by confidence
+- **30-pattern seed** (5 Gold, 10 Production, 15 Experimental) including 10 ASO-specific patterns for multi-geo app launch workflow
+- **Compliance-class architecture**: runs on internal AgentBase, no internal data crosses to external AI providers (VNG DPO-approved reference deployment)
 
-AKC is a VNG-compliant knowledge API: structured patterns with confidence scoring, stored on-prem (GreenNode AgentBase), callable via REST + Claude Code skill.
+### What to expect on Day 1
 
-- **Structured patterns** (not raw chat history) with explicit {what_worked, what_failed} + confidence score
-- **Tier system** (Gold ≥0.85, Production ≥0.70, Experimental ≥0.50, Demoted <0.50) — high-confidence patterns surface first
-- **Self-improving loop** — `/recall` fetches guidance, agent executes, `/remember` reports outcome → patterns rise/fall by confidence
-- **30-pattern seed** including 10 ASO-specific patterns (keyword research, localization, creative, launch sequencing) for multi-geography app deployment workflow
+A fresh AKC runtime starts with an **empty KB** (or 30 seeded patterns if you keep the demo seed). `/recall` returns nothing until you log a few outcomes. **Practical expectations**: by task ~20, recall surfaces useful patterns; by task ~100, recall is sharper than any hand-curated team wiki because patterns are scored by actual outcomes, not author intent. The starter kit ships with 30 demo patterns (including 10 ASO domain examples) so judges see a representative state immediately.
+
+## How AKC compares
+
+| Capability | AKC | mem0 | Letta (MemGPT) | ChatGPT Memory | Claude Projects | Fine-tuning |
+|---|---|---|---|---|---|---|
+| Team-shared scope | ✅ Native | Per-user | Per-agent state | Per-user only | Per-project (manual) | Per-model |
+| Auto-write from outcomes | ✅ `/remember` distill | ✅ (chat-summary) | ✅ (chat-history) | ✅ (chat-summary) | ❌ Manual paste | ❌ Static |
+| Auto-read before tasks | ✅ `/recall` | ✅ | ✅ | Implicit | Implicit | Baked in |
+| Confidence-tiered (self-correcting) | ✅ Gold guardrail | ❌ Flat | ❌ Flat | ❌ Flat | ❌ Flat | ❌ Frozen |
+| Compliance-friendly deploy | ✅ Self-host on AgentBase | SaaS-first | SaaS or self-host | SaaS only | SaaS only | Self-host possible |
+| Outcome → structured Pattern | ✅ {what_worked, what_failed} | Chat summary | Chat snippets | Chat summary | Free-form notes | n/a |
+| Cost per write | ~$0.001 (LLM distill) | $0.001-0.01 | $0.001-0.01 | Included | Included | $1000s+ training |
+
+**AKC's unique angle**: tier-based confidence with 3-failure Gold guardrail. Bad patterns demote within 3 failures; neither mem0 nor Letta has this self-correction mechanism. Closest alternatives optimize for recall hit rate; AKC optimizes for **trust calibration over time**.
 
 ## Installation
 
@@ -32,7 +47,7 @@ pip install -r requirements.txt
 Create a `.env` file (copy and fill in your credentials):
 
 ```bash
-LLM_MODEL=minimax/minimax-m2.5
+LLM_MODEL=google/gemma-4-31b-it
 LLM_BASE_URL=https://maas-llm-aiplatform-hcm.api.vngcloud.vn/v1
 LLM_API_KEY=your-api-key
 MEMORY_ID=memory-d9b9d688-9a28-446c-841a-c70b59cdc446
@@ -58,7 +73,7 @@ cd dl-starter-kit
 Export your credentials, then build and start:
 
 ```bash
-export LLM_MODEL=minimax/minimax-m2.5
+export LLM_MODEL=google/gemma-4-31b-it
 export LLM_BASE_URL=https://maas-llm-aiplatform-hcm.api.vngcloud.vn/v1
 export LLM_API_KEY=your-api-key
 
@@ -170,7 +185,7 @@ Every pattern has a score (0.0–0.95) determining its tier:
 
 **Recall:** POST /recall → AgentBase Memory Service (semantic, 2s timeout) or JSONL fallback → filter by tier/tags → rank by confidence → return top-k
 
-**Remember:** POST /remember → 202 Accepted → background task → optional MiniMax distillation → update confidence → tier re-evaluation → append to patterns.jsonl
+**Remember:** POST /remember → 202 Accepted → background task → optional Gemma 4-31b distillation → update confidence → tier re-evaluation → append to patterns.jsonl
 
 **Storage:** JSONL (atomic write via tempfile + os.replace) + confidence_history.jsonl audit log. Mountable Docker volume for persistence.
 
@@ -179,7 +194,7 @@ Every pattern has a score (0.0–0.95) determining its tier:
 | Component | Technology |
 |-----------|------------|
 | Framework | FastAPI (Python 3.11+) |
-| LLM | MiniMax M2.5 (OpenAI-compatible) via GreenNode MaaS |
+| LLM | Gemma 4-31b-it (OpenAI-compatible) via GreenNode MaaS — A/B chosen for 9x latency vs MiniMax at parity JSON quality |
 | Storage | JSONL append-only + AgentBase Memory Service (semantic recall) |
 | Deployment | Docker; GreenNode AgentBase Runtime |
 | Confidence Engine | Bayesian update with Beta(2,1) prior (init 0.67) + Gold guardrail (3 failures to demote) |
@@ -190,7 +205,24 @@ Every pattern has a score (0.0–0.95) determining its tier:
 - No API authentication (all callers trusted in MVP)
 - Single KB per runtime (no multi-tenant routing)
 - No cross-node KB sync (each runtime has its own patterns)
-- LLM locked to MiniMax M2.5 (any OpenAI-compatible model swappable via `LLM_MODEL`)
+- LLM locked to Gemma 4-31b-it (any OpenAI-compatible model swappable via `LLM_MODEL`)
+
+## Trust Model (MVP)
+
+AKC v1 is designed for **internal, trusted callers** behind a corporate firewall (e.g., VNG internal network). The threat model assumes:
+
+- All `/remember` callers are authenticated team members (not anonymous)
+- The runtime endpoint is not publicly exposed
+- Patterns may contain non-secret team knowledge; `.env` and credentials are never sent through `/remember`
+
+**Out of scope (Phase 2)**:
+- API key authentication per caller
+- Rate limiting + per-caller quotas
+- Adversarial input detection (sybil-resistance, content filtering)
+- Multi-tenant KB scoping (one KB per team/project)
+- PII/secret redaction in `outcome` strings
+
+Audit trail is provided via `/kb/export` (Gold + Production patterns as markdown) for periodic review.
 
 ## Project Status
 

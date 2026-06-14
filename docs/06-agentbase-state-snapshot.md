@@ -36,12 +36,12 @@
 
 | Field | Value |
 |-------|-------|
-| **Model** | **minimax/minimax-m2.5** (LOCKED, E2E tested) |
+| **Model** | **google/gemma-4-31b-it** (LOCKED after A/B test D4 — 9x faster than MiniMax, valid JSON, cheaper) |
 | **Base URL** | https://maas-llm-aiplatform-hcm.api.vngcloud.vn/v1 |
 | **API key source** | BTC-provided AIP key (in `.env`, NEVER expose) |
 | **Key in .env as** | `LLM_API_KEY` |
 
-**Update (D4):** LLM model locked to MiniMax M2.5. E2E testing complete (distillation, pattern generation, confidence updates all pass). README previously stated Qwen — corrected to MiniMax M2.5.
+**Update (D4):** LLM model switched from MiniMax M2.5 to Gemma 4-31b-it after A/B test D4 evening. Gemma won decisively: 579ms vs 5365ms (9x faster), valid JSON extraction, lower token cost (115 vs 301 tokens per call). MiniMax M2.5 available as fallback. See `plans/reports/devils-advocate-260614-2237-akc-round2-deep-dive.md` § E for trust calibration and safety guardrails (patterns start experimental tier, confidence decay protects against wrong distillations).
 
 ---
 
