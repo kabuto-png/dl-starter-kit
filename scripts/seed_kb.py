@@ -299,10 +299,16 @@ def generate_patterns(tier_mix: dict, seed: int) -> list[dict]:
 
     patterns = []
 
-    # ASO patterns first so they appear in default 30-seed even when count <= len(generic list)
-    gold_sources = ASO_PATTERNS[:2] + GOLD_PATTERNS
-    production_sources = ASO_PATTERNS[2:6] + PRODUCTION_PATTERNS
-    experimental_sources = ASO_PATTERNS[6:10] + EXPERIMENTAL_PATTERNS
+    # ASO tier assignment by index — HERO (JP keyword, idx 0) intentionally placed in
+    # production so Scene 2 of demo can promote it to gold via a single /remember success.
+    # Stable universal rules (rating prompt timing, release cadence) go to gold.
+    gold_aso = [ASO_PATTERNS[4], ASO_PATTERNS[7]]                    # rating timing + release cadence
+    production_aso = [ASO_PATTERNS[0], ASO_PATTERNS[1], ASO_PATTERNS[2], ASO_PATTERNS[3]]  # JP kw (HERO) + KR title + VN icon + JP screenshot
+    experimental_aso = [ASO_PATTERNS[5], ASO_PATTERNS[6], ASO_PATTERNS[8], ASO_PATTERNS[9]]
+
+    gold_sources = gold_aso + GOLD_PATTERNS
+    production_sources = production_aso + PRODUCTION_PATTERNS
+    experimental_sources = experimental_aso + EXPERIMENTAL_PATTERNS
 
     for i in range(tier_mix.get("gold", 5)):
         base = gold_sources[i % len(gold_sources)]
@@ -318,9 +324,13 @@ def generate_patterns(tier_mix: dict, seed: int) -> list[dict]:
 
     for i in range(tier_mix.get("production", 10)):
         base = production_sources[i % len(production_sources)]
+        # Demo-pin: HERO (JP keyword, first production slot) at 0.76 — Scene 1's
+        # /remember bumps it to 0.81 (still production), Scene 2's /remember bumps
+        # to 0.86 → crosses Gold threshold cinematically in Scene 2 only.
+        confidence = 0.76 if i == 0 else round(random.uniform(0.70, 0.84), 4)
         pattern = {
             **base,
-            "confidence": round(random.uniform(0.70, 0.84), 4),
+            "confidence": confidence,
             "tier": "production",
             "consecutive_failures": 0,
             "times_applied": random.randint(2, 10),

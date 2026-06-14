@@ -62,8 +62,10 @@ async def distill_task_outcome(task_context: str, outcome_text: str) -> dict | N
                 {"role": "user", "content": user_prompt},
             ],
             response_format={"type": "json_object"},   # RMB-03: JSON enforcement
-            max_tokens=512,                             # RMB-06: >= 512 minimum
-            extra_body={"enable_thinking": False},      # RMB-04: disable thinking tokens
+            max_tokens=1024,                            # RMB-06: bumped from 512 to safety margin for verbose outcomes
+            top_p=0.7,                                  # tighter sampling for structured output (per MaaS Gemma spec)
+            seed=42,                                    # reproducible distillation for demo
+            extra_body={"enable_thinking": False},      # RMB-04: Qwen thinking disable (no-op for Gemma/MiniMax)
             temperature=0.3,                            # Low temperature for structured extraction
         )
 

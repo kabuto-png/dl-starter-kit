@@ -7,11 +7,15 @@ RUN pip install --no-cache-dir -r requirements.txt
 
 # Copy application (selective — not COPY . .)
 COPY akc/ ./akc/
+COPY scripts/ ./scripts/
 COPY main.py .
+
+# Pre-seed demo KB so judges see 30 patterns (incl. 10 ASO) on first /health
+ENV PYTHONPATH=/app
+RUN mkdir -p /app/data && python scripts/seed_kb.py --kb-dir /app/data --overwrite
 
 # Non-root user security (DEPLOY-01)
 RUN useradd -r -u 1001 appuser && \
-    mkdir -p /app/data && \
     chown -R appuser:appuser /app
 USER appuser
 
