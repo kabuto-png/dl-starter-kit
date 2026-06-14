@@ -1,3 +1,4 @@
+import asyncio
 import hashlib
 import logging
 import re
@@ -236,7 +237,13 @@ async def distill_and_store(request: DistillRequest, store) -> None:
 
         # Step 5: Update confidence of patterns_used — RMB-07
         if request.patterns_used:
-            outcome_type = "success" if request.success else "failure"
+            # Prefer explicit success bool; fall back to PRD outcome-string contract.
+            # Prevents silent KB poisoning when callers send only `outcome` per PRD §5.
+            if request.success is not None:
+                is_success = request.success
+            else:
+                is_success = request.outcome.strip().lower() == "success"
+            outcome_type = "success" if is_success else "failure"
             for pattern_id in request.patterns_used:
                 try:
                     await store.update_pattern(pattern_id, outcome_type)

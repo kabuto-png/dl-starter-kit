@@ -13,7 +13,7 @@ class DistillRequest(BaseModel):
     outcome: str = Field(..., min_length=1, max_length=8000)       # Required: raw outcome text to distill
     what_happened: Optional[str] = Field(None, max_length=8000) # Optional: detailed description of what occurred
     tags: Optional[list[str]] = None                             # Optional: caller-supplied tags for the new pattern
-    patterns_used: Optional[list[str]] = None                    # Optional: IDs of patterns that were applied
+    patterns_used: Optional[list[str]] = Field(None, max_length=50)  # Optional: IDs of patterns that were applied (cap prevents lock-DoS)
     success: Optional[bool] = None                               # Optional: whether the task succeeded
 
     @field_validator("tags", mode="before")
