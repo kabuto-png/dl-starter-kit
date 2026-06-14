@@ -28,5 +28,5 @@ VOLUME ["/app/data"]
 
 EXPOSE 8080
 
-# ASGI entry point (uvicorn, not python main.py)
-CMD ["uvicorn", "main:app", "--host", "0.0.0.0", "--port", "8080"]
+# ASGI entry point (uvicorn, not python main.py) — explicit log level
+CMD ["uvicorn", "main:app", "--host", "0.0.0.0", "--port", "8080", "--log-level", "info"]

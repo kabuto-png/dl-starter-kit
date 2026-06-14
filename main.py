@@ -1,6 +1,18 @@
+import asyncio
 import logging
-from contextlib import asynccontextmanager
+import sys
 
+# Configure logger FIRST — before any module-level pydantic-settings validation
+# that could raise ValidationError to stderr without being captured.
+logging.basicConfig(
+    level=logging.INFO,
+    stream=sys.stdout,
+    format="%(asctime)s %(name)s %(levelname)s %(message)s",
+)
+logger = logging.getLogger("akc")
+logger.info("AKC boot — logger initialized BEFORE imports")
+
+from contextlib import asynccontextmanager
 from dotenv import load_dotenv
 load_dotenv()  # populate os.environ so GreenNode SDK can read GREENNODE_CLIENT_ID/SECRET
 
@@ -9,7 +21,13 @@ from fastapi import BackgroundTasks, FastAPI, Request, status
 from fastapi.exceptions import RequestValidationError
 from fastapi.responses import JSONResponse
 
-from akc.core.config import settings
+try:
+    from akc.core.config import settings
+    logger.info("AKC boot — settings loaded: KB_DIR=%s, LLM_MODEL=%s", settings.akc_kb_dir, settings.llm_model)
+except Exception as e:
+    logger.exception("AKC boot — FATAL: settings validation failed")
+    raise
+
 from akc.patterns.store import JsonlStore
 from akc.remember.distiller import distill_and_store
 from akc.remember.models import DistillRequest
@@ -20,12 +38,6 @@ import akc.export.router as export_router_module
 from akc.recall.service import RecallService
 from akc.stats.service import StatsService
 from akc.export.service import ExportService
-
-logging.basicConfig(
-    level=logging.INFO,
-    format="%(asctime)s %(name)s %(levelname)s %(message)s",
-)
-logger = logging.getLogger("akc")
 
 store = JsonlStore(kb_dir=settings.akc_kb_dir)
 
@@ -81,7 +93,9 @@ async def lifespan(app: FastAPI):
         settings.akc_kb_dir,
         stats["total_patterns"],
     )
-    await _seed_memory_service()
+    # Memory Service seed runs in background — must NOT block lifespan, otherwise
+    # AgentBase health check times out before FastAPI accepts requests.
+    asyncio.create_task(_seed_memory_service())
     yield
     logger.info("AKC shutting down")
 
@@ -97,8 +111,8 @@ from fastapi.middleware.cors import CORSMiddleware
 app.add_middleware(
     CORSMiddleware,
     allow_origins=["*"],
-    allow_methods=["GET", "POST"],
-    allow_headers=["Content-Type"],
+    allow_methods=["*"],
+    allow_headers=["*"],
 )
 
 
@@ -116,8 +130,34 @@ async def validation_exception_handler(request: Request, exc: RequestValidationE
 
 @app.get("/health")
 async def health():
-    stats = await store.load_stats()
-    return {"status": "ok", "pattern_count": stats["total_patterns"]}
+    """Probe-friendly health: never throws, always 200 if process is up."""
+    try:
+        stats = await store.load_stats()
+        return {"status": "ok", "pattern_count": stats["total_patterns"]}
+    except Exception as e:
+        logger.warning("AKC /health stats unavailable: %s", e)
+        return {"status": "ok", "pattern_count": 0}
+
+
+@app.post("/invocations")
+async def invocations(request: Request):
+    """AgentBase Runtime contract stub.
+
+    AKC's primary surface is /recall + /remember, not /invocations.
+    This stub returns a minimal directory so platform readiness probes pass.
+    """
+    return {
+        "service": "AKC — Agent Knowledge Catalyst",
+        "endpoints": {
+            "recall": "POST /recall — fetch top-k patterns by task_context + tags",
+            "remember": "POST /remember — record outcome, update confidence (202 Accepted)",
+            "stats": "GET /stats — KB tier distribution",
+            "kb_export": "POST /kb/export — markdown export of Gold+Production patterns",
+            "health": "GET /health — pattern_count + ok status",
+        },
+        "skill": "akc-recall-task-remember",
+        "docs": "https://github.com/kabuto-png/dl-starter-kit",
+    }
 
 
 @app.post("/remember", status_code=202)
