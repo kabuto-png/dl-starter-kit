@@ -20,6 +20,10 @@ curl -sf https://endpoint-30123c53-b859-4599-a339-94b2cedabf7b.agentbase-runtime
 
 See `docs/test-guide-anh-duc.md` for full test suite (covers all 5 endpoints + PRD compliance matrix).
 
+**Demo client paths**:
+- **Claude Code skill** (current): install `skill/SKILL.md`, set `AKC_ENDPOINT`, AI auto-fires recall+remember on tasks
+- **OpenClaw no-code workspace** (optional bonus): provision OC instance on AgentBase, paste workspace config from [`docs/openclaw-integration.md`](docs/openclaw-integration.md) — stronger Automation pitch
+
 ## What AKC does
 
 - **Structured patterns** (not chat logs): each entry has `context`, `what_worked`, `what_failed`, `tags`, `confidence`
