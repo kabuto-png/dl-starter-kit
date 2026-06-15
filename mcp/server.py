@@ -12,11 +12,17 @@ import os
 
 import httpx
 from mcp.server.fastmcp import FastMCP
+from mcp.server.transport_security import TransportSecuritySettings
 
 AKC_ENDPOINT = os.environ.get("AKC_ENDPOINT", "").rstrip("/")
 TIMEOUT = float(os.environ.get("AKC_TIMEOUT", "30"))
 
-mcp = FastMCP("akc")
+# Hosted behind the AgentBase gateway → disable the localhost-only DNS-rebinding
+# guard so the public endpoint's Host header is accepted. No effect on stdio.
+mcp = FastMCP(
+    "akc",
+    transport_security=TransportSecuritySettings(enable_dns_rebinding_protection=False),
+)
 
 
 def _require_endpoint() -> str | None:
@@ -169,6 +175,53 @@ async def akc_health() -> str:
     if not ok:
         return f"health failed — {d}"
     return f"status={d.get('status')} pattern_count={d.get('pattern_count')}"
+
+
+@mcp.tool()
+async def akc_patterns(tier: str | None = None, tag: str | None = None, limit: int = 50) -> str:
+    """Inspect the knowledge base — list patterns (all tiers) for review.
+
+    Read-only view. Curation (promote/demote) is the AKC Steward's job, not exposed here.
+
+    Args:
+        tier: Optional filter: gold|production|experimental|demoted.
+        tag: Optional single tag filter.
+        limit: Max patterns to return (default 50).
+    """
+    if err := _require_endpoint():
+        return err
+    qs = f"?limit={limit}"
+    if tier:
+        qs += f"&tier={tier}"
+    if tag:
+        qs += f"&tag={tag}"
+    ok, d = await _get(f"/patterns{qs}")
+    if not ok:
+        return f"patterns failed — {d}"
+    pats = d.get("patterns", []) if isinstance(d, dict) else []
+    lines = [f"{d.get('total', len(pats))} pattern(s):"]
+    for p in pats:
+        lines.append(
+            f"- [{p.get('id')}] {p.get('tier')} conf={p.get('confidence')} — {(p.get('context') or '')[:80]}"
+        )
+    return "\n".join(lines)
+
+
+@mcp.tool()
+async def akc_gaps() -> str:
+    """Show knowledge gaps — queries users searched for but the KB had no answer to."""
+    if err := _require_endpoint():
+        return err
+    ok, d = await _get("/gaps")
+    if not ok:
+        return f"gaps failed — {d}"
+    gaps = d.get("gaps", []) if isinstance(d, dict) else []
+    if not gaps:
+        return "No coverage gaps recorded."
+    return "\n".join(
+        f"- ({g.get('count')}x) {g.get('task_context')} [{', '.join(g.get('tags', []))}]"
+        for g in gaps
+    )
 
 
 if __name__ == "__main__":

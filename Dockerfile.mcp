@@ -1,0 +1,21 @@
+# Hosted AKC MCP — remote Streamable HTTP MCP server on AgentBase.
+FROM python:3.13-slim
+WORKDIR /app
+
+COPY requirements-mcp.txt .
+RUN pip install --no-cache-dir -r requirements-mcp.txt
+
+# Copy flat (no mcp/ subdir) so `import mcp` resolves to the installed package,
+# not this project's mcp/ folder.
+COPY mcp/server.py mcp/http_server.py ./
+
+RUN useradd -r -u 1001 appuser && chown -R appuser:appuser /app
+USER appuser
+
+ENV PYTHONUNBUFFERED=1
+# Default AKC backend (public URL); override at runtime via --env-file if needed.
+ENV AKC_ENDPOINT=https://endpoint-30123c53-b859-4599-a339-94b2cedabf7b.agentbase-runtime.aiplatform.vngcloud.vn
+EXPOSE 8080
+
+# Serves MCP at /mcp + /health + /invocations on 0.0.0.0:8080
+CMD ["python", "http_server.py"]

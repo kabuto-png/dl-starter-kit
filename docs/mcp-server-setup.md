@@ -2,7 +2,7 @@
 
 One MCP server wraps the AKC REST API, so **the same tools work in Claude Code, Claude Desktop, Codex, and Gemini CLI**. This is the universal *tool* layer (data-plane verbs). The *judgment* layer — when to recall/remember — lives in each client's instruction file (`.claude/skills/`, `AGENTS.md`, `GEMINI.md`).
 
-> Control-plane curation (promote/audit/gaps) is **not** here — that is OpenClaw's Steward role, which calls AKC directly. The MCP server is for end users only.
+> Mutating curation (`POST /curate`) is **not** exposed here — that stays with OpenClaw's Steward. The MCP exposes the data-plane verbs plus read-only KB inspection.
 
 ## Tools
 
@@ -13,8 +13,37 @@ One MCP server wraps the AKC REST API, so **the same tools work in Claude Code, 
 | `akc_stats` | `GET /stats` | KB health: tier counts, hit-rate |
 | `akc_export` | `POST /kb/export` | Markdown sheet of Gold+Production patterns |
 | `akc_health` | `GET /health` | Liveness + pattern count |
+| `akc_patterns` | `GET /patterns` | Inspect the KB — list patterns (read-only) |
+| `akc_gaps` | `GET /gaps` | Coverage gaps — searches with no KB answer |
 
-## 1. Install
+## Hosted (no install) — recommended
+
+The MCP server is **deployed on AgentBase** (Streamable HTTP), so skip the local setup and point your client straight at the hosted endpoint. It already targets the live AKC backend — no `AKC_ENDPOINT` needed.
+
+```
+https://endpoint-8976bc68-ff8c-48fc-8045-79e0a38c2762.agentbase-runtime.aiplatform.vngcloud.vn/mcp
+```
+
+**Claude Code:**
+```bash
+claude mcp add --transport http akc https://endpoint-8976bc68-ff8c-48fc-8045-79e0a38c2762.agentbase-runtime.aiplatform.vngcloud.vn/mcp
+```
+
+**Gemini CLI** — `~/.gemini/settings.json`:
+```json
+{ "mcpServers": { "akc": { "httpUrl": "https://endpoint-8976bc68-ff8c-48fc-8045-79e0a38c2762.agentbase-runtime.aiplatform.vngcloud.vn/mcp" } } }
+```
+
+**Codex** (stdio client → bridge with mcp-remote) — `~/.codex/config.toml`:
+```toml
+[mcp_servers.akc]
+command = "npx"
+args = ["-y", "mcp-remote", "https://endpoint-8976bc68-ff8c-48fc-8045-79e0a38c2762.agentbase-runtime.aiplatform.vngcloud.vn/mcp"]
+```
+
+Verify: ask your client *"Use akc_health"* → `status=ok pattern_count=30`.
+
+## Local install (stdio) — offline / dev
 
 ```bash
 python3 -m venv ~/.akc-mcp-venv
