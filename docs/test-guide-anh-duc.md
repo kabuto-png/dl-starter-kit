@@ -167,15 +167,173 @@ These are non-blocking for D7 submission — code behavior is sensible and self-
 
 ---
 
-## Skill Setup (optional — for Claude Code users)
+## Full Flow Test via Claude Code (AI agent, NOT curl)
+
+**Goal**: Verify that Claude Code automatically fires `/recall` + `/remember` against the live AKC endpoint, end-to-end like a real ASO Specialist would.
+
+### Setup (1 phút)
 
 ```bash
+# 1. Clone repo locally
+git clone https://github.com/kabuto-png/dl-starter-kit.git
+cd dl-starter-kit
+
+# 2. Install AKC skill into Claude Code
 mkdir -p ~/.claude/skills/akc-recall-task-remember
 cp skill/SKILL.md ~/.claude/skills/akc-recall-task-remember/
-export AKC_ENDPOINT="$AKC"
+
+# 3. Export endpoint env var (skill reads this)
+export AKC_ENDPOINT=https://endpoint-30123c53-b859-4599-a339-94b2cedabf7b.agentbase-runtime.aiplatform.vngcloud.vn
+
+# 4. (Optional) Persist for future shells
+echo 'export AKC_ENDPOINT=https://endpoint-30123c53-b859-4599-a339-94b2cedabf7b.agentbase-runtime.aiplatform.vngcloud.vn' >> ~/.zshrc
 ```
 
-Now any task in Claude Code triggers /recall + /remember loop automatically (when skill is loaded by Claude's prompt-matching).
+### Verify skill loaded
+
+Mở Claude Code (terminal-based hoặc IDE extension), gõ:
+
+```
+list available skills
+```
+
+Claude trả lời danh sách, trong đó phải có `akc-recall-task-remember`. Nếu không thấy → skill chưa load, check path `~/.claude/skills/akc-recall-task-remember/SKILL.md`.
+
+---
+
+### Scene 1 — JP Cold Start (full AI flow)
+
+**Anh Đức gõ prompt** (copy paste exact):
+
+```
+Tôi là ASO Specialist VNG Publishing. Tuần này phải launch 1 casual game (genre 放置RPG) ở App Store Japan. Đây là geo đầu tiên, team chưa có data nội bộ. Cần week-1 keyword strategy: pick title + subtitle keywords để max impression trong 7 ngày đầu.
+```
+
+**Expected Claude behavior** (skill auto-triggers):
+
+1. Claude reads `akc-recall-task-remember/SKILL.md`, recognizes "any task start" trigger
+2. **Auto-fire** `POST /recall` với:
+   - `task_context`: kiểu "week-1 keyword strategy for Casual game JP launch"
+   - `tags`: `["aso", "japan", "casual", "keyword-research"]`
+   - `top_k`: 3-5
+   - `min_tier`: `"production"`
+3. AKC trả về 3 patterns top:
+   - HERO `d25f02b1-...` (kanji vs romaji, confidence ~0.81 sau test trước)
+   - Screenshot CTR pattern (production)
+   - Release cadence pattern (gold)
+4. Claude **suggest plan** dùng `what_worked` từ patterns:
+   - "Theo team's past experience: target kanji compound terms (3-5x volume), submit metadata Tuesday JST, lead screenshot với high-tension gameplay frame 1..."
+5. **Auto-fire** `POST /remember` (fire-and-forget):
+   - `task_context`: same
+   - `outcome`: `"success"` (hoặc summary)
+   - `patterns_used`: list of pattern IDs Claude actually used
+   - `success`: `true`
+   - `tags`: ASO-related
+
+**How to verify Claude actually called /recall**:
+
+Sau khi Claude trả lời, check:
+
+```bash
+curl -sf "$AKC_ENDPOINT/stats" | python3 -c "import json,sys; d=json.load(sys.stdin); print(f\"total_queries: {d['total_queries']}\")"
+```
+
+`total_queries` phải tăng +1 sau mỗi prompt. Nếu không tăng → skill không fire (Claude không hiểu trigger).
+
+**How to verify Claude called /remember**:
+
+```bash
+curl -sf "$AKC_ENDPOINT/stats" | python3 -c "import json,sys; d=json.load(sys.stdin); print(f\"total_outcomes_recorded: {d['total_outcomes_recorded']}\")"
+```
+
+`total_outcomes_recorded` phải tăng +1.
+
+Cũng có thể check HERO confidence bumped:
+
+```bash
+curl -sf -X POST "$AKC_ENDPOINT/recall" \
+  -H "Content-Type: application/json" \
+  -d '{"task_context":"JP keyword","tags":["aso","jp","keyword"],"top_k":1,"min_tier":"production"}' \
+  | python3 -c "import json,sys; d=json.load(sys.stdin); p=d['patterns'][0]; print(f\"HERO confidence: {p['confidence']}, times_applied: {p['times_applied']}\")"
+```
+
+Mỗi lần Claude fire success → HERO confidence +0.05.
+
+---
+
+### Scene 2 — KR Compound Recall (anh Đức trải nghiệm compound learning)
+
+**Anh Đức mở session Claude Code MỚI** (đóng session cũ — quan trọng để chứng minh memory ở AKC chứ không phải Claude session).
+
+**Prompt** (copy paste):
+
+```
+Cùng casual game đó, giờ tới phase launch ở Korea Play Store. Tuần trước đã launch JP rồi (kết quả tốt). Tuần 1 KR muốn áp dụng learning từ JP + add KR-specific knowledge. Cho tôi keyword + creative + release timing plan.
+```
+
+**Expected behavior**:
+
+1. Claude **auto-fire** `/recall` với tags `["aso", "korea", "casual", "keyword-research"]` hoặc tương tự
+2. AKC trả về:
+   - HERO JP pattern (vẫn surface vì same `aso` + `keyword` tag) — confidence giờ đã 0.81+ sau Scene 1
+   - KR-specific patterns nếu có seed (KR Play Store title cap, KR localized description)
+3. Claude generate plan dùng INSIGHTS từ JP (hangul long-tail keywords, dual-submit ONE Store + Play Store, KakaoTalk integration)
+4. **Auto-fire** `/remember` với `success: true` + `patterns_used: ["<HERO-id>", "<KR-pattern-id>"]`
+5. **Compound moment**: HERO confidence 0.81 + 0.05 = **0.86 → Gold tier crossed**
+
+**Verify Gold promotion**:
+
+```bash
+curl -sf "$AKC_ENDPOINT/stats" | python3 -m json.tool
+```
+
+Look for:
+- `total_outcomes_recorded: 2` (sau Scene 1 + Scene 2)
+- `recently_promoted: [{"pattern_id": "d25f02b1-...", ...}]` ← HERO appeared here ✨
+- `by_tier.gold`: 5 → 6 (HERO joined Gold tier)
+
+Hoặc /kb/export sẽ list HERO ở section Gold:
+
+```bash
+curl -sf -X POST "$AKC_ENDPOINT/kb/export" -H "Content-Type: application/json" -d '{}' | head -30
+```
+
+---
+
+### Verification Cheat Sheet (run before + after Claude session)
+
+**Before Scene 1**:
+```bash
+curl -sf "$AKC_ENDPOINT/stats" | python3 -c "import json,sys; d=json.load(sys.stdin); print(f\"Q={d['total_queries']}, O={d['total_outcomes_recorded']}, Gold={d['by_tier']['gold']}\")"
+```
+
+**After Scene 1**:
+- `Q` should be `+1`
+- `O` should be `+1`
+- HERO confidence bumped 0.05
+
+**After Scene 2**:
+- `Q` `+1` again (total +2 from baseline)
+- `O` `+1` again (total +2 from baseline)
+- `Gold` should be `+1` (HERO promoted)
+- `recently_promoted` should list HERO
+
+---
+
+### Common Pitfalls
+
+| Issue | Cause | Fix |
+|---|---|---|
+| Claude không fire /recall | Skill không load hoặc prompt không match trigger description | Check `~/.claude/skills/akc-recall-task-remember/SKILL.md` exists; restart Claude Code; explicitly say "use the akc skill" in prompt |
+| `total_queries` không tăng | Skill fired nhưng /recall fail (network) | Check `$AKC_ENDPOINT` env set; smoke test `curl $AKC_ENDPOINT/health` |
+| HERO confidence không bump | Claude gửi `success: false` hoặc thiếu `patterns_used` | Check Claude response — ask "what pattern IDs did you call /remember with?" |
+| Scene 2 không thấy HERO ở recall | Tag mismatch — Scene 2 dùng tags không overlap với HERO's tags `["aso","keyword","jp","app-store"]` | Add `keyword` hoặc `aso` tag explicit trong Scene 2 prompt context |
+
+---
+
+## Skill Setup Path (basic — for non-Claude-Code testing)
+
+Nếu anh Đức không dùng Claude Code, vẫn có thể test thủ công bằng curl theo Tests 1-7 ở trên.
 
 ---
 
