@@ -239,6 +239,8 @@ class JsonlStore:
         so promotions also surface in /stats recently_promoted.
         Returns the updated record, or None if pattern_id is unknown.
         """
+        if new_tier not in _TIER_BANDS:
+            raise ValueError(f"unknown tier: {new_tier!r}")
         lo, hi = _TIER_BANDS[new_tier]
         async with self._lock:
             patterns = await asyncio.to_thread(self._read_patterns_sync)

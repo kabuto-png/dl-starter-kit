@@ -8,6 +8,7 @@ These are governance verbs, distinct from the data-plane recall/remember path.
 """
 from __future__ import annotations
 
+import hmac
 import logging
 import os
 from typing import Optional
@@ -50,6 +51,11 @@ async def list_patterns(
 ) -> dict:
     """List patterns across all tiers (incl. experimental + demoted) for curation review."""
     s = _require_store()
+    if tier and tier not in _VALID_TIERS:
+        raise HTTPException(
+            status_code=400,
+            detail={"error": f"tier must be one of {sorted(_VALID_TIERS)}", "code": "bad_tier"},
+        )
     patterns = await s.load_all(exclude_demoted=False)
     if tier:
         patterns = [p for p in patterns if p.get("tier") == tier]
@@ -66,7 +72,7 @@ async def curate(req: CurateRequest, x_curator_key: Optional[str] = Header(None)
     Gated by X-Curator-Key only when CURATOR_KEY env is set (open otherwise, for demo).
     """
     expected = os.environ.get("CURATOR_KEY")
-    if expected and x_curator_key != expected:
+    if expected and not hmac.compare_digest(x_curator_key or "", expected):
         raise HTTPException(
             status_code=401,
             detail={"error": "invalid or missing curator key", "code": "unauthorized"},

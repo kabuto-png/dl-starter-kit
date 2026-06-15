@@ -15,7 +15,10 @@ from mcp.server.fastmcp import FastMCP
 from mcp.server.transport_security import TransportSecuritySettings
 
 AKC_ENDPOINT = os.environ.get("AKC_ENDPOINT", "").rstrip("/")
-TIMEOUT = float(os.environ.get("AKC_TIMEOUT", "30"))
+try:
+    TIMEOUT = float(os.environ.get("AKC_TIMEOUT", "30"))
+except ValueError:
+    TIMEOUT = 30.0
 
 # Hosted behind the AgentBase gateway → disable the localhost-only DNS-rebinding
 # guard so the public endpoint's Host header is accepted. No effect on stdio.
@@ -50,7 +53,8 @@ async def _get(path: str) -> tuple[bool, object]:
             r = await client.get(f"{AKC_ENDPOINT}{path}")
         if r.status_code >= 400:
             return False, f"HTTP {r.status_code}: {r.text[:300]}"
-        return True, r.json()
+        ctype = r.headers.get("content-type", "")
+        return True, (r.json() if "application/json" in ctype else r.text)
     except Exception as exc:
         return False, f"{type(exc).__name__}: {exc}"
 
