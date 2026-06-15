@@ -1,0 +1,198 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>AKC — Agent Knowledge Catalyst · Project Presentation</title>
+<style>
+  :root{
+    --bg:#0b0e14; --panel:#121722; --panel2:#0e131c; --line:#222b3a;
+    --txt:#e6edf3; --mut:#8b97a7;
+    --cyan:#22d3ee; --gold:#f5b301; --violet:#a78bfa; --green:#34d399; --red:#f87171;
+  }
+  *{box-sizing:border-box}
+  html{scroll-behavior:smooth}
+  body{margin:0;background:radial-gradient(1100px 500px at 50% -8%,#16203199,transparent),var(--bg);
+    color:var(--txt);font:15px/1.55 -apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif}
+  .wrap{max-width:1000px;margin:0 auto;padding:0 20px}
+  /* nav */
+  nav{position:sticky;top:0;z-index:10;background:#0b0e14e6;backdrop-filter:blur(8px);border-bottom:1px solid var(--line)}
+  nav .wrap{display:flex;gap:18px;align-items:center;height:52px;flex-wrap:wrap}
+  nav b{color:var(--gold);font-size:15px}
+  nav a{color:var(--mut);text-decoration:none;font-size:13px}
+  nav a:hover{color:var(--txt)}
+  /* hero */
+  header{padding:54px 0 30px;border-bottom:1px solid var(--line)}
+  h1{font-size:34px;margin:0;letter-spacing:-.5px}
+  .tag{color:var(--mut);font-size:17px;margin:8px 0 0}
+  .pills{display:flex;gap:8px;flex-wrap:wrap;margin-top:18px}
+  .pill{background:var(--panel);border:1px solid var(--line);border-radius:999px;padding:5px 12px;font-size:12px;color:var(--mut)}
+  .pill b{color:var(--cyan)}
+  section{padding:34px 0;border-bottom:1px solid var(--line)}
+  h2{font-size:13px;text-transform:uppercase;letter-spacing:1.6px;color:var(--mut);margin:0 0 16px;font-weight:600}
+  p{margin:0 0 12px}
+  .lede{font-size:16px;color:#cfd8e3}
+  .two{display:grid;grid-template-columns:1fr 1fr;gap:14px}
+  @media(max-width:680px){.two{grid-template-columns:1fr}}
+  .card{background:var(--panel);border:1px solid var(--line);border-radius:12px;padding:16px}
+  .card h3{margin:0 0 6px;font-size:15px}
+  .card .s{color:var(--mut);font-size:13.5px}
+  /* arch */
+  .col{display:flex;flex-direction:column;align-items:center}
+  .plane{width:100%;border:1px dashed var(--line);border-radius:12px;padding:12px;background:#0f141d80}
+  .plane .lbl{font-size:11px;letter-spacing:1.4px;color:var(--mut);text-transform:uppercase;margin-bottom:9px;text-align:center}
+  .chips{display:flex;gap:8px;flex-wrap:wrap;justify-content:center}
+  .chip{background:var(--panel);border:1px solid var(--line);border-radius:999px;padding:6px 13px;font-size:13px}
+  .box{background:var(--panel);border:1px solid var(--line);border-radius:13px;padding:14px 18px;text-align:center;width:min(620px,100%)}
+  .box .t{font-weight:700}.box .s{color:var(--mut);font-size:12.5px;margin-top:3px}
+  .box .api{font-family:ui-monospace,Menlo,monospace;font-size:11.5px;color:#aeb9c8;margin-top:6px}
+  .mcp{border-color:var(--cyan);box-shadow:0 0 0 1px #22d3ee30}.mcp .t{color:var(--cyan)}
+  .akc{border-color:var(--gold);box-shadow:0 0 0 1px #f5b30130}.akc .t{color:var(--gold)}
+  .oc{border-color:var(--violet);box-shadow:0 0 0 1px #a78bfa30}.oc .t{color:var(--violet)}
+  .arr{color:#566175;font-size:12px;text-align:center;padding:8px 0}.arr b{font-size:19px;color:#6b7686;display:block}
+  /* flywheel */
+  .fly{display:flex;gap:0;flex-wrap:wrap;justify-content:center;align-items:center}
+  .step{background:var(--panel);border:1px solid var(--line);border-radius:11px;padding:12px 14px;width:172px;text-align:center}
+  .step .n{display:inline-block;width:20px;height:20px;border-radius:50%;background:#1f6feb22;border:1px solid var(--cyan);color:var(--cyan);font-size:11px;line-height:20px;margin-bottom:5px}
+  .step .t{font-size:13.5px;font-weight:600}.step .s{font-size:11.5px;color:var(--mut)}
+  .ar{color:#566175;font-size:20px;padding:0 6px}
+  /* stats */
+  .grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(130px,1fr));gap:12px}
+  .stat{background:var(--panel);border:1px solid var(--line);border-radius:12px;padding:15px;text-align:center}
+  .stat .v{font-size:25px;font-weight:700}.stat .k{font-size:11.5px;color:var(--mut);margin-top:2px}
+  .g{color:var(--gold)}.c{color:var(--cyan)}.v2{color:var(--violet)}.gr{color:var(--green)}
+  table{width:100%;border-collapse:collapse;font-size:13px}
+  td,th{border:1px solid var(--line);padding:9px 11px;text-align:left;vertical-align:top}
+  th{color:var(--mut);font-weight:600;font-size:11px;text-transform:uppercase;letter-spacing:.8px}
+  .mono{font-family:ui-monospace,Menlo,monospace;color:#aeb9c8;font-size:11.5px;word-break:break-all}
+  ol{margin:0;padding-left:20px}ol li{margin:6px 0}
+  .k{color:var(--mut)}
+  .ok{color:var(--green)}.warn{color:var(--gold)}
+  footer{padding:28px 0 50px;color:#566175;font-size:12px;text-align:center}
+  code{background:#0f141d;border:1px solid var(--line);border-radius:5px;padding:1px 6px;font-family:ui-monospace,Menlo,monospace;font-size:12px;color:#aeb9c8}
+</style>
+</head>
+<body>
+
+<nav><div class="wrap">
+  <b>AKC</b>
+  <a href="#what">What</a><a href="#arch">Architecture</a><a href="#mcp">MCP</a>
+  <a href="#live">Live</a><a href="#security">Security</a><a href="#demo">Demo</a><a href="#roadmap">Roadmap</a>
+</div></nav>
+
+<header><div class="wrap">
+  <h1>AKC · <span style="color:var(--gold)">Agent Knowledge Catalyst</span></h1>
+  <p class="tag">Compound team memory for AI agents — <b>one MCP, self-improving</b>.</p>
+  <div class="pills">
+    <span class="pill"><b>3</b> live runtimes</span>
+    <span class="pill"><b>7</b> MCP tools</span>
+    <span class="pill"><b>30</b> patterns</span>
+    <span class="pill">Claude Code · Desktop · Codex · Gemini</span>
+    <span class="pill">Clawathon 2026 · claw26-team23</span>
+  </div>
+</div></header>
+
+<section id="what"><div class="wrap">
+  <h2>The problem & the idea</h2>
+  <p class="lede">AI agents relearn the same lessons every session — what worked, what failed, which keyword strategy hit. Nothing compounds.</p>
+  <div class="two">
+    <div class="card"><h3>AKC = shared team memory</h3><div class="s">Agents <b>recall</b> proven patterns before a task and <b>remember</b> outcomes after. Each pattern carries a confidence score and a tier: <span class="g">gold</span> › production › experimental › demoted.</div></div>
+    <div class="card"><h3>It gets smarter on its own</h3><div class="s">Outcomes adjust confidence; a curator promotes proven patterns to gold. The more the team uses it, the better recall becomes — with no manual upkeep by users.</div></div>
+  </div>
+</div></section>
+
+<section id="arch"><div class="wrap">
+  <h2>Architecture — two planes meeting at AKC</h2>
+  <div class="col">
+    <div class="plane"><div class="lbl">Data plane · end users</div>
+      <div class="chips"><span class="chip">Claude Code</span><span class="chip">Claude Desktop</span><span class="chip">Codex</span><span class="chip">Gemini CLI</span></div>
+    </div>
+    <div class="arr"><b>↓</b>one MCP · any client</div>
+    <div class="box mcp"><div class="t">🔌 AKC MCP Server</div><div class="s">hosted · Streamable HTTP · no install</div><div class="api">recall · remember · stats · export · patterns · gaps</div></div>
+    <div class="arr"><b>↓ ↑</b>read: recall&nbsp;·&nbsp;write: remember (raw → experimental)</div>
+    <div class="box akc"><div class="t">🧠 AKC — shared knowledge base</div><div class="s">patterns · confidence · tiers · gaps · history</div></div>
+    <div class="arr"><b>↑</b>audit /patterns /stats /gaps&nbsp;·&nbsp;<b style="display:inline;font-size:13px">curate → promote to gold (key-gated)</b></div>
+    <div class="box oc"><div class="t">🛡️ OpenClaw Steward — control plane</div><div class="s">autonomous curator · governs the KB · NOT a user channel</div></div>
+  </div>
+  <p class="s" style="color:var(--mut);text-align:center;margin-top:12px">Users only ever touch the MCP. The two planes never talk directly — they meet <b>through AKC</b>. (Users plant seeds; the Steward tends the garden.)</p>
+
+  <h2 style="margin-top:30px">Flywheel — self-improving memory</h2>
+  <div class="fly">
+    <div class="step"><span class="n">1</span><div class="t">User remembers</div><div class="s">a raw pattern</div></div><span class="ar">→</span>
+    <div class="step"><span class="n">2</span><div class="t">AKC stores it</div><div class="s">experimental</div></div><span class="ar">→</span>
+    <div class="step"><span class="n">3</span><div class="t">Steward promotes</div><div class="s">→ gold (with reason)</div></div><span class="ar">→</span>
+    <div class="step"><span class="n">4</span><div class="t">Next recall</div><div class="s">surfaces the gold</div></div><span class="ar">⟲</span>
+  </div>
+</div></section>
+
+<section id="mcp"><div class="wrap">
+  <h2>The MCP — the single face</h2>
+  <p>One MCP server wraps AKC, so the same tools work in <b>Claude Code, Claude Desktop, Codex, and Gemini</b>. Hosted on AgentBase (Streamable HTTP) — point a client at the URL, no local install.</p>
+  <table>
+    <tr><th>Tool</th><th>Purpose</th></tr>
+    <tr><td class="mono">akc_recall</td><td>fetch confidence-ranked patterns before a task</td></tr>
+    <tr><td class="mono">akc_remember</td><td>record an outcome after a task (async distill)</td></tr>
+    <tr><td class="mono">akc_stats</td><td>KB health: tier counts, hit-rate</td></tr>
+    <tr><td class="mono">akc_export</td><td>markdown sheet of gold+production patterns</td></tr>
+    <tr><td class="mono">akc_health</td><td>liveness + pattern count</td></tr>
+    <tr><td class="mono">akc_patterns</td><td>inspect KB — list patterns (read-only)</td></tr>
+    <tr><td class="mono">akc_gaps</td><td>coverage gaps — searches with no answer</td></tr>
+  </table>
+  <p class="s" style="color:var(--mut);margin-top:10px">Add in Claude Code: <code>claude mcp add --transport http akc &lt;mcp-url&gt;</code> · Gemini: <code>httpUrl</code> in settings · Claude Desktop: Connectors → custom.</p>
+</div></section>
+
+<section id="live"><div class="wrap">
+  <h2>Live now</h2>
+  <div class="grid">
+    <div class="stat"><div class="v g">30</div><div class="k">patterns</div></div>
+    <div class="stat"><div class="v g">5</div><div class="k">gold</div></div>
+    <div class="stat"><div class="v c">0.82</div><div class="k">HERO (promote candidate)</div></div>
+    <div class="stat"><div class="v v2">2</div><div class="k">coverage gaps</div></div>
+    <div class="stat"><div class="v c">7</div><div class="k">MCP tools</div></div>
+    <div class="stat"><div class="v gr">3</div><div class="k">live runtimes</div></div>
+  </div>
+  <table style="margin-top:14px">
+    <tr><th>Component</th><th>Role</th><th>Endpoint</th></tr>
+    <tr><td>AKC backend</td><td>shared memory + REST API (Swagger at <code>/docs</code>)</td><td class="mono">endpoint-30123c53…vngcloud.vn</td></tr>
+    <tr><td>AKC MCP (hosted)</td><td>single user-facing surface</td><td class="mono">endpoint-8976bc68…vngcloud.vn/mcp</td></tr>
+    <tr><td>OpenClaw Steward</td><td>autonomous curator (control plane)</td><td class="mono">OpenClaw chat · steward workspace</td></tr>
+  </table>
+</div></section>
+
+<section id="security"><div class="wrap">
+  <h2>Security posture</h2>
+  <p><b>Trust boundary:</b> open ingestion, authenticated curation. The data plane (recall/remember) is open for low-friction adoption; the control plane (<code>POST /curate</code>) is <b class="ok">key-gated</b> — only the Steward can change tiers.</p>
+  <table>
+    <tr><th>Layer</th><th>Control</th></tr>
+    <tr><td>Auth</td><td><code>/curate</code> requires <code>X-Curator-Key</code> · constant-time <code>hmac.compare_digest</code></td></tr>
+    <tr><td>Integrity</td><td>tier↔confidence invariant — curate clamps confidence into the tier band</td></tr>
+    <tr><td>Quality</td><td>anti-hallucination evals + confidence-gated auto-promotion</td></tr>
+    <tr><td>Recovery</td><td>deterministic image seed → tampering reset by redeploy (~2 min)</td></tr>
+    <tr><td>Atomicity</td><td>JSONL writes under lock + tempfile + os.replace (crash-safe)</td></tr>
+  </table>
+  <p class="s" style="color:var(--mut);margin-top:10px">Verified live: <code>/curate</code> no-key → <span class="ok">401</span>, with key → 200. No secret in the repo (audit clean, 12/12 tests pass).</p>
+</div></section>
+
+<section id="demo"><div class="wrap">
+  <h2>Demo (5 min) — both planes</h2>
+  <div class="two">
+    <div class="card"><h3>① Data plane (users)</h3><div class="s">In Claude (MCP configured): <i>"Plan a Japan keyword launch."</i> → agent calls <code>akc_recall</code>, surfaces the JP kanji-keyword pattern, plans citing it, then <code>akc_remember</code> records the outcome.</div></div>
+    <div class="card"><h3>② Control plane (Steward)</h3><div class="s">In OpenClaw: <i>"Audit the KB."</i> → flags the JP-keyword pattern (production 0.82, applied 18×) as a promote candidate → <i>"Promote it to gold"</i> → <code>/curate</code> → <code>/stats</code> shows it in <code>recently_promoted</code>. Then <i>"show gaps."</i></div></div>
+  </div>
+  <p class="s" style="color:var(--mut);margin-top:10px"><b>Security beat (optional):</b> a no-key <code>/curate</code> → <span class="ok">401 blocked</span>; with key → promoted. The defense runs live.</p>
+</div></section>
+
+<section id="roadmap"><div class="wrap">
+  <h2>Roadmap — production hardening</h2>
+  <ol>
+    <li><b>Per-user access via MCP Gateway → Policy Group</b> — principal <code>jwt</code> + condition on the <code>email</code> claim ⇒ restrict to <b>@vng.com.vn</b>. Native to the platform — no custom OAuth code.</li>
+    <li><b>Network isolation</b> — AKC as a private <code>agent-runtime-vpc</code>; only the gateway is public → truly "single exposed surface".</li>
+    <li><b>Least-privilege IAM</b> — scope the service account to a group with only runtime + registry policies.</li>
+    <li><b>Data flywheel at scale</b> — pattern set 30 → 300+ as more teams recall/remember through the one MCP.</li>
+  </ol>
+</div></section>
+
+<footer><div class="wrap">AKC — Agent Knowledge Catalyst · Clawathon 2026 · team claw26-team23 — one MCP, self-improving team memory.</div></footer>
+
+</body>
+</html>
