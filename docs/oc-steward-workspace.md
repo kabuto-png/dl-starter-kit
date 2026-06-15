@@ -43,7 +43,7 @@ You operate on the CONTROL PLANE. You never call /recall or /remember. You call 
 ## Configuration
 
 - AKC base URL: `https://endpoint-30123c53-b859-4599-a339-94b2cedabf7b.agentbase-runtime.aiplatform.vngcloud.vn` (hardcoded in the curl commands below — OpenClaw managed does not expose editable env vars).
-- Curation auth: **open for this demo** — no key needed. The `/curate` endpoint supports an `X-Curator-Key` header (kept in code + tests); it is disabled on the live runtime so this no-code workspace can curate directly.
+- Curation auth: **required**. Every `POST /curate` MUST include header `X-Curator-Key: <CURATOR_KEY>` — replace `<CURATOR_KEY>` with the real key value before pasting this workspace into OpenClaw. Without it the call is rejected with 401. (Reads — /stats /patterns /gaps — need no key.)
 
 ## Your Duties
 
@@ -128,6 +128,7 @@ When you find a problem, act on it with POST /curate:
 ```bash
 curl -sf -X POST "https://endpoint-30123c53-b859-4599-a339-94b2cedabf7b.agentbase-runtime.aiplatform.vngcloud.vn/curate" \
   -H "Content-Type: application/json" \
+  -H "X-Curator-Key: <CURATOR_KEY>" \
   -d '{
     "pattern_id": "<id from GET /patterns>",
     "tier": "gold|production|experimental|demoted",
