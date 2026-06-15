@@ -49,13 +49,44 @@
 
 | Field | Value |
 |-------|-------|
-| **Current step** | 8 (Deploy) — READY |
-| **vCR access** | CLEARED D4 (verified push capability) |
-| **Next action** | Docker build → push to vCR → `/agentbase-deploy` → Runtime creation |
-| **Deploy preferences** | flavor=runtime-s2-general-4x8, platform=linux/amd64, replicas=1 |
-| **Local test status** | PASSED (all 5 endpoints functional; seed 30 patterns incl. 10 ASO verified) |
-| **Runtime ID** | Not yet created (D5 target) |
-| **Target date** | D5 2026-06-14 |
+| **Current step** | 8 (Deploy) — **DEPLOYED D5 2026-06-15 ACTIVE** ✅ |
+| **Runtime ID** | `runtime-577cd07b-33ed-46f1-b134-1149b7137681` |
+| **Endpoint URL** | `https://endpoint-30123c53-b859-4599-a339-94b2cedabf7b.agentbase-runtime.aiplatform.vngcloud.vn` |
+| **Endpoint ID (DEFAULT)** | `endpoint-30123c53-b859-4599-a339-94b2cedabf7b` |
+| **Image** | `vcr.vngcloud.vn/111666-dl-starter-kit/dl-starter-kit:v20260615011317` (Docker v2s2 manifest) |
+| **vCR repo** | `dl-starter-kit` (backendName `111666-dl-starter-kit`) |
+| **Robot account** | `dl-starter-kit-deploy` (pull+push permissions) |
+| **Flavor** | runtime-s2-general-4x8 (4 vCPU / 8 GB / 1 replica) |
+| **LLM** | google/gemma-4-31b-it via GreenNode MaaS |
+| **Memory store** | memory-d9b9d688-9a28-446c-841a-c70b59cdc446 |
+| **Identity** | dl-starter-kit (auto-injected by runtime) |
+| **Status** | ACTIVE — all 5 endpoints smoke-tested working |
+| **Deploy date** | D5 2026-06-15 09:30 GMT+7 |
+
+---
+
+## Smoke Test Results (D5 deploy verification)
+
+All 5 endpoints verified working on the live AgentBase Runtime:
+
+| Endpoint | Method | Verified Response |
+|----------|--------|-------------------|
+| `/health` | GET | `{"status":"ok","pattern_count":30}` |
+| `/stats` | GET | `{by_tier:{gold:5,production:10,experimental:15,demoted:0}, top_tags:[python, aso, app-store, ...]}` |
+| `/recall` | POST | Returns top-k patterns; HERO pat_aso_jp_001 at confidence 0.76 production for JP query — matches storyboard Scene 2 math |
+| `/remember` | POST | 202 Accepted (background distill+store+update_confidence) |
+| `/kb/export` | POST | Markdown export of Gold + Production patterns |
+| `/invocations` | POST | Service directory (Runtime Contract §3 stub) |
+
+## Deploy Lessons (5 ERROR attempts before success)
+
+Documented to inform future deploys. Summary:
+
+1. **v1 ERROR**: lifespan blocked on Memory Service sync (30 patterns × retry). FIX: `asyncio.create_task(_seed_memory_service())` non-blocking.
+2. **v2/v3 ERROR**: logger.basicConfig AFTER pydantic-settings import. ValidationError on missing env var was emitted to uncaptured stderr — zero logs reached AgentBase. FIX: reorder so logging configured first, wrap settings load in try/except logger.exception, redirect to stdout.
+3. **v4 ERROR**: missing POST /invocations endpoint per AgentBase Runtime Service Contract §3. FIX: added stub returning service directory.
+4. **v5 ERROR**: (a) CORS `allow_methods=["GET","POST"]` rejected probe OPTIONS preflight and X-GreenNode-AgentBase-* headers, (b) /health threw 500 on transient stats read failure, (c) Podman OCI manifest possibly rejected by kubelet. FIX: CORS allow_*=["*"], /health try/except always 200, image repushed `--format v2s2`.
+5. **6th attempt SUCCESS**: deleted corrupted runtime (stuck in UPDATING/ERROR cycles), created fresh runtime with v5 image. Took ~90s to ACTIVE.
 
 ---
 
@@ -132,11 +163,11 @@ See [`docs/07-partner-claude-setup.md`](07-partner-claude-setup.md) for install 
 
 ## Next Steps
 
-1. **D5 (next):** Docker build + push vCR → `agentbase-deploy` → create Runtime
-2. **D5 (dress rehearsal):** Smoke test deployed endpoint with seeded KB + Claude Code skill loop
-3. **D6:** Monitor runtime health, demo video recording + use case description
-4. **D7 (before 12:00):** Final submission
+1. ✅ **D5 DONE:** Docker build + push vCR + Runtime creation — ACTIVE at `runtime-577cd07b-33ed-46f1-b134-1149b7137681`
+2. ✅ **D5 DONE:** Smoke test deployed endpoint — all 5 endpoints verified, 30 seeded patterns loaded
+3. **D6 (2026-06-16):** Record demo video 2-3 min + polish 200-word use case description
+4. **D7 (before 12:00 GMT+7):** Final submission
 
 ---
 
-**Updated:** 2026-06-14 14:00 GMT+7 | **Status:** CURRENT (D4 checkpoint)
+**Updated:** 2026-06-15 09:30 GMT+7 | **Status:** DEPLOYED (D5 checkpoint) — ACTIVE for D6-D7

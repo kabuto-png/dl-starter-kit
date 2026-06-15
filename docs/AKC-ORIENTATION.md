@@ -130,9 +130,9 @@ Cuộc thi list 3 track theo function (Assistant / Data / Automation). AKC nằm
 
 | Day | Việc | Owner | Status |
 |---|---|---|---|
-| D5 14/06 | Deploy AKC lên AgentBase Runtime (vCR access cleared D4) | chủ repo | READY |
-| D6 15/06 | Record demo video 2-3 min, viết use case 200 words | both | READY |
-| D7 16-17/06 | Submit trước 12:00 GMT+7 | both | ON TRACK |
+| D5 15/06 | Deploy AKC lên AgentBase Runtime ✅ ACTIVE — endpoint live | chủ repo | DONE |
+| D6 16/06 | Record demo video 2-3 min, polish use case 200 words | both | READY |
+| D7 17/06 | Submit trước 12:00 GMT+7 | both | ON TRACK |
 
 ---
 
@@ -154,12 +154,13 @@ Cuộc thi list 3 track theo function (Assistant / Data / Automation). AKC nằm
 
 ---
 
-## 7. Quyết định locked (D4)
+## 7. Quyết định locked (D4-D5)
 
 1. ✅ **Track = Automation & Integration** — pitch via 2-scene ASO demo (OpenClaw + Claude Code + AKC backend)
 2. ✅ **LLM = Gemma 4-31b-it** — Switched D4 evening after A/B test (9x faster than MiniMax M2.5, valid JSON, cheaper). See `plans/reports/devils-advocate-260614-2237-akc-round2-deep-dive.md` for rationale.
 3. ✅ **Direction = Level L (REUSE-MAX)** — 30 generic + 10 ASO + 2-scene demo. Code stable, no new features.
 4. ✅ **vCR access** — cleared D4. D5 Docker push + Runtime create unblocked.
+5. ✅ **D5 Deploy = SUCCESS** — Runtime ACTIVE at `runtime-577cd07b-33ed-46f1-b134-1149b7137681`. Endpoint: `https://endpoint-30123c53-b859-4599-a339-94b2cedabf7b.agentbase-runtime.aiplatform.vngcloud.vn`. Image `dl-starter-kit:v20260615011317` (v2s2 manifest). All 5 endpoints smoke-tested (Gemma distill verified via /remember).
 
 ---
 

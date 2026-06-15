@@ -6,6 +6,20 @@ AKC stores what worked, what failed, what's still being tested. Compounding know
 
 > Built for Anthropic's Claw-a-thon 2026 — Track: **Automation & Integration**
 
+## Live Deployment
+
+AKC is deployed on GreenNode AgentBase Runtime:
+
+**Endpoint**: `https://endpoint-30123c53-b859-4599-a339-94b2cedabf7b.agentbase-runtime.aiplatform.vngcloud.vn`
+
+Quick verify:
+```bash
+curl -sf https://endpoint-30123c53-b859-4599-a339-94b2cedabf7b.agentbase-runtime.aiplatform.vngcloud.vn/health
+# → {"status":"ok","pattern_count":30}
+```
+
+See `docs/test-guide-anh-duc.md` for full test suite (covers all 5 endpoints + PRD compliance matrix).
+
 ## What AKC does
 
 - **Structured patterns** (not chat logs): each entry has `context`, `what_worked`, `what_failed`, `tags`, `confidence`

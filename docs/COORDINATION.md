@@ -102,6 +102,7 @@ dl_starter_kit/
 | 2026-06-11 23:05 | Persona doesn't need to be real user — demo persona = PLAUSIBLE + MEASURABLE + SHOWABLE. Mai "ví dụ" admission from Long. ASO persona = "ASO Specialist VNG Publishing" works without naming real person. | both |
 | 2026-06-11 23:06 | **Session close tonight.** Locked: Track Automation, ASO use case candidate, Stop-doing list. Awaiting morning D3: anh Đức confirm 3 items (ASO OK / LLM / /remember). vCR mail + .env fix queued for chủ repo D3 morning. | both |
 | 2026-06-14 D4 | **Direction LOCKED: Level L (REUSE-MAX).** 30 generic patterns + 10 ASO patterns + 2-scene demo. Backend complete (commits 60ca516, 31ee2d7 edge cases fixed). Seed distribution: 2 ASO in gold, 4 in production, 4 in experimental (default tier-mix; verified locally). Storyboard: JP cold start → KR compound recall + live tier promotion. `.env` GREENNODE_* populated. Demo persona: ASO Specialist VNG Publishing (JP/KR/VN/TH/PH geos). LLM locked: MiniMax M2.5 (E2E tested). **vCR access CLEARED D4** — D5 deploy unblocked. README updated: corrected LLM spec mismatch (was Qwen, now MiniMax), added 2-scene demo description, clarified VNG compliance USP. | both |
+| 2026-06-15 D5 | **AKC DEPLOYED to AgentBase Runtime — ACTIVE** ✅ Runtime `runtime-577cd07b-33ed-46f1-b134-1149b7137681`, Endpoint `https://endpoint-30123c53-b859-4599-a339-94b2cedabf7b.agentbase-runtime.aiplatform.vngcloud.vn`. Image `dl-starter-kit:v20260615011317` (v2s2 manifest). All 5 endpoints smoke-tested (Gemma distill verified via /remember). Took 5 ERROR attempts to land — lessons documented in docs/06-agentbase-state-snapshot.md (logger order, CORS *, /invocations stub, asyncio.create_task lifespan). Submission ready for D6 demo recording. | both |
 
 ---
 
@@ -132,13 +133,13 @@ dl_starter_kit/
 | Day | Date | Focus | Owner | Status |
 |---|---|---|---|---|
 | D1 | 10/06 | Scaffold + provision AgentBase | chủ repo | DONE |
-| D2 | 11/06 | `/recall` + `/remember` endpoints; folder restructure | **anh Đức** | IN-PROGRESS |
-| D3 | 12/06 | LLM distillation (Qwen) | anh Đức | TODO |
-| D4 | 13/06 | AgentBase Memory integration | anh Đức + chủ repo | TODO |
-| D5 | 14/06 | Dockerize + deploy AgentBase | chủ repo | READY (vCR cleared) |
-| D6 | 15/06 | `/stats` + `/kb/export` + polish | both | TODO |
-| D7 morning | 16/06 | Demo video + description | both | TODO |
-| D7 noon | 17/06 12:00 | Submit | both | TODO |
+| D2 | 11/06 | `/recall` + `/remember` endpoints; folder restructure | **anh Đức** | DONE |
+| D3 | 12/06 | LLM distillation + Gemma selection | anh Đức | DONE |
+| D4 | 13/06 | AgentBase Memory integration, Round 2 edge cases | anh Đức + chủ repo | DONE |
+| D5 | 15/06 | **Dockerize + deploy AgentBase — ACTIVE** ✅ | chủ repo | DONE |
+| D6 | 16/06 | Demo video 2-3 min + use case 200 words | both | READY |
+| D7 morning | 16/06 | Polish submission assets | both | READY |
+| D7 noon | 17/06 12:00 | Submit | both | ON TRACK |
 
 ---
 

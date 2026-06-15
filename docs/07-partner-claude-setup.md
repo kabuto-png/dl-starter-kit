@@ -12,6 +12,24 @@ Two paths below: lightweight (docs-only) vs full tooling (skills installed).
 
 ---
 
+## ✅ AKC is LIVE on AgentBase
+
+**Endpoint**: `https://endpoint-30123c53-b859-4599-a339-94b2cedabf7b.agentbase-runtime.aiplatform.vngcloud.vn`
+
+**Quick smoke test** (no setup required):
+
+```bash
+export AKC_ENDPOINT=https://endpoint-30123c53-b859-4599-a339-94b2cedabf7b.agentbase-runtime.aiplatform.vngcloud.vn
+curl -sf "$AKC_ENDPOINT/health"
+# → {"status":"ok","pattern_count":30}
+```
+
+If you see `pattern_count: 30`, AKC is operational with the demo seed (5 Gold + 10 Production + 15 Experimental, including 10 ASO patterns).
+
+See **Test Guide** (`docs/test-guide-anh-duc.md`) for full end-to-end verification.
+
+---
+
 ## Path A: Lightweight (Docs + greennode SDK only)
 
 **Use this if:** You prefer to work without Claude Code skills, or need fast onboarding.
