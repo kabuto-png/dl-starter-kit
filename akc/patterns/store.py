@@ -1,3 +1,5 @@
+from __future__ import annotations
+
 import asyncio
 import json
 import logging
@@ -9,6 +11,15 @@ from pathlib import Path
 logger = logging.getLogger(__name__)
 
 from akc.patterns.models import ConfidenceEvent, Pattern
+
+# Steward curation: target confidence band per tier — keeps the tier↔confidence
+# invariant (classify_tier(confidence) == tier) intact after a manual override.
+_TIER_BANDS = {
+    "gold": (0.85, 0.95),
+    "production": (0.70, 0.849),
+    "experimental": (0.50, 0.699),
+    "demoted": (0.0, 0.499),
+}
 
 
 class JsonlStore:
@@ -70,12 +81,19 @@ class JsonlStore:
             patterns = [p for p in patterns if p.get("tier") != "demoted"]
         return sorted(patterns, key=lambda x: x.get("confidence", 0), reverse=True)
 
-    async def record_recall_query(self, result_count: int) -> None:
+    async def record_recall_query(
+        self, result_count: int, task_context: str = "", tags: list[str] | None = None,
+    ) -> None:
         event = {
             "type": "recall_query",
             "result_count": result_count,
             "timestamp": datetime.now(timezone.utc).isoformat(),
         }
+        # GAP-01: on an empty recall, capture WHAT the user searched for so the
+        # Steward can see real coverage gaps. Hits log count only (privacy + size).
+        if result_count == 0:
+            event["task_context"] = (task_context or "")[:500]
+            event["tags"] = tags or []
         await asyncio.to_thread(self._append_history_sync, event)
 
     async def load_stats(self) -> dict:
@@ -210,3 +228,87 @@ class JsonlStore:
             patterns = await asyncio.to_thread(self._read_patterns_sync)
             patterns[pattern.id] = json.loads(pattern.model_dump_json())
             await asyncio.to_thread(self._write_patterns_atomic_sync, patterns)
+
+    async def curate_pattern(
+        self, pattern_id: str, new_tier: str, reason: str = "",
+    ) -> dict | None:
+        """Steward override: set a pattern's tier directly (manual promote/demote).
+
+        Confidence is clamped into the target tier's band so the tier↔confidence
+        invariant holds. Logged as a confidence_update event with source=curation,
+        so promotions also surface in /stats recently_promoted.
+        Returns the updated record, or None if pattern_id is unknown.
+        """
+        lo, hi = _TIER_BANDS[new_tier]
+        async with self._lock:
+            patterns = await asyncio.to_thread(self._read_patterns_sync)
+            if pattern_id not in patterns:
+                return None
+            old = dict(patterns[pattern_id])
+            new_conf = round(min(max(old.get("confidence", 0.0), lo), hi), 4)
+            ts = datetime.now(timezone.utc).isoformat()
+            updated = {
+                **old,
+                "tier": new_tier,
+                "confidence": new_conf,
+                "consecutive_failures": 0,
+                "last_updated": ts,
+            }
+            patterns[pattern_id] = updated
+            await asyncio.to_thread(self._write_patterns_atomic_sync, patterns)
+            event = {
+                "type": "confidence_update",
+                "pattern_id": pattern_id,
+                "outcome": "curation",
+                "old_confidence": old.get("confidence", 0.0),
+                "new_confidence": new_conf,
+                "old_tier": old.get("tier"),
+                "new_tier": new_tier,
+                "source": "curation",
+                "reason": reason,
+                "timestamp": ts,
+            }
+            await asyncio.to_thread(self._append_history_sync, event)
+            return updated
+
+    async def load_gaps(self) -> list[dict]:
+        """Aggregate empty-recall queries (result_count==0) into coverage gaps.
+
+        Only queries recorded AFTER gap-logging shipped carry task_context.
+        Sorted by frequency descending.
+        """
+        return await asyncio.to_thread(self._load_gaps_sync)
+
+    def _load_gaps_sync(self) -> list[dict]:
+        if not self._history_path.exists():
+            return []
+        gaps: dict[str, dict] = {}
+        with open(self._history_path, encoding="utf-8") as f:
+            for line in f:
+                line = line.strip()
+                if not line:
+                    continue
+                try:
+                    event = json.loads(line)
+                except json.JSONDecodeError:
+                    continue
+                if event.get("type") != "recall_query" or event.get("result_count", 0) != 0:
+                    continue
+                ctx = (event.get("task_context") or "").strip()
+                if not ctx:
+                    continue
+                g = gaps.setdefault(
+                    ctx.lower(),
+                    {"task_context": ctx, "count": 0, "_tags": {}, "last_seen": None},
+                )
+                g["count"] += 1
+                for t in event.get("tags", []) or []:
+                    g["_tags"][t] = g["_tags"].get(t, 0) + 1
+                ts = event.get("timestamp")
+                if ts and (g["last_seen"] is None or ts > g["last_seen"]):
+                    g["last_seen"] = ts
+        result = sorted(gaps.values(), key=lambda x: x["count"], reverse=True)
+        for g in result:
+            g["tags"] = sorted(g["_tags"], key=lambda t: g["_tags"][t], reverse=True)
+            del g["_tags"]
+        return result

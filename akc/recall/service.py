@@ -75,8 +75,12 @@ class RecallService:
 
         end = time.monotonic()
 
-        # Step 5: record recall query for stats (STATS-02)
-        await self._store.record_recall_query(result_count=len(results))
+        # Step 5: record recall query for stats (STATS-02) + gap capture (GAP-01)
+        await self._store.record_recall_query(
+            result_count=len(results),
+            task_context=request.task_context,
+            tags=request.tags,
+        )
 
         logger.info(
             "Recall: %d candidates -> %d results (min_tier=%s, top_k=%d)",

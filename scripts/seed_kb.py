@@ -1,4 +1,5 @@
 import argparse
+import json
 import random
 import sys
 from pathlib import Path
@@ -324,16 +325,17 @@ def generate_patterns(tier_mix: dict, seed: int) -> list[dict]:
 
     for i in range(tier_mix.get("production", 10)):
         base = production_sources[i % len(production_sources)]
-        # Demo-pin: HERO (JP keyword, first production slot) at 0.76 — Scene 1's
-        # /remember bumps it to 0.81 (still production), Scene 2's /remember bumps
-        # to 0.86 → crosses Gold threshold cinematically in Scene 2 only.
-        confidence = 0.76 if i == 0 else round(random.uniform(0.70, 0.84), 4)
+        # Demo-pin: HERO (JP keyword, first production slot) at 0.82 with high usage —
+        # an obviously under-tiered candidate the Steward promotes to Gold live during the
+        # control-plane demo (POST /curate). Deterministic so every fresh container reproduces it.
+        is_hero = i == 0
+        confidence = 0.82 if is_hero else round(random.uniform(0.70, 0.84), 4)
         pattern = {
             **base,
             "confidence": confidence,
             "tier": "production",
             "consecutive_failures": 0,
-            "times_applied": random.randint(2, 10),
+            "times_applied": 18 if is_hero else random.randint(2, 10),
             "last_updated": datetime.now(timezone.utc).isoformat(),
         }
         patterns.append(pattern)
@@ -378,6 +380,30 @@ def seed_kb(kb_dir: str, patterns: list[dict], overwrite: bool) -> None:
         raise
 
 
+DEMO_GAPS = [
+    {"task_context": "soft launch retention benchmarks for Thailand puzzle games", "tags": ["aso", "th", "soft-launch"]},
+    {"task_context": "iOS SKAdNetwork attribution setup for paid UA campaigns", "tags": ["aso", "ios", "attribution"]},
+]
+
+
+def seed_history(kb_dir: str) -> None:
+    """Seed confidence_history.jsonl so /stats hit-rate and /gaps have demo data on a
+    fresh container. The runtime volume is NOT persistent — all demo state must come
+    from the baked seed, not accumulate at runtime."""
+    path = Path(kb_dir).resolve()
+    path.mkdir(parents=True, exist_ok=True)
+    history_file = path / "confidence_history.jsonl"
+    now = datetime.now(timezone.utc).isoformat()
+    events = [{"type": "recall_query", "result_count": n, "timestamp": now} for n in (5, 3, 4, 2)]
+    for g in DEMO_GAPS:
+        events.append({"type": "recall_query", "result_count": 0,
+                       "task_context": g["task_context"], "tags": g["tags"], "timestamp": now})
+    with open(str(history_file), "w", encoding="utf-8") as f:
+        for e in events:
+            f.write(json.dumps(e) + "\n")
+    print(f"  seeded {len(events)} history events ({len(DEMO_GAPS)} gaps)")
+
+
 def main() -> None:
     args = parse_args()
     tier_mix = parse_tier_mix(args.tier_mix)
@@ -398,6 +424,8 @@ def main() -> None:
     except PermissionError as e:
         print(f"Error: {e}", file=sys.stderr)
         sys.exit(1)
+
+    seed_history(args.kb_dir)
 
     by_tier: dict[str, int] = {}
     for p in patterns:

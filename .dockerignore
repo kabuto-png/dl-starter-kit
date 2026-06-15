@@ -19,3 +19,10 @@ tests/
 kb/
 kb_data/
 .vcr-credentials.json
+.env.openclaw
+.env.deploy
+.env.deploy.new
+.env.deploy.tmp
+.env.example
+**/__pycache__/
+*.pyc

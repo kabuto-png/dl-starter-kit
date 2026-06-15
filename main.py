@@ -35,6 +35,7 @@ from akc.remember.models import DistillRequest
 import akc.recall.router as recall_router_module
 import akc.stats.router as stats_router_module
 import akc.export.router as export_router_module
+import akc.patterns.router as patterns_router_module
 from akc.recall.service import RecallService
 from akc.stats.service import StatsService
 from akc.export.service import ExportService
@@ -50,6 +51,7 @@ export_svc = ExportService(store=store)
 recall_router_module.recall_service = recall_svc
 stats_router_module.stats_service = stats_svc
 export_router_module.export_service = export_svc
+patterns_router_module.store = store
 
 
 async def _seed_memory_service():
@@ -174,6 +176,7 @@ async def remember(request: DistillRequest, background_tasks: BackgroundTasks):
 app.include_router(recall_router_module.router)
 app.include_router(stats_router_module.router)
 app.include_router(export_router_module.router)
+app.include_router(patterns_router_module.router)
 
 
 if __name__ == "__main__":
