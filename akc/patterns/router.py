@@ -108,3 +108,57 @@ async def gaps() -> dict:
     """Coverage gaps: queries that returned zero patterns, aggregated by frequency."""
     s = _require_store()
     return {"gaps": await s.load_gaps()}
+
+
+class HeartbeatRequest(BaseModel):
+    """Optional overrides for a manual heartbeat. Omitted fields use env defaults."""
+    stale_days: Optional[int] = Field(default=None, ge=0)
+    decay_days: Optional[int] = Field(default=None, ge=0)
+    decay_delta: Optional[float] = Field(default=None, ge=0.0, le=1.0)
+    dry_run: bool = False
+
+
+@router.post("/steward/heartbeat")
+async def steward_heartbeat(
+    req: HeartbeatRequest, x_curator_key: Optional[str] = Header(None),
+) -> dict:
+    """Fire one Steward heartbeat tick now — the autonomous curation pulse.
+
+    Same X-Curator-Key gate as /curate. Optional body overrides let a reviewer
+    force action (e.g. {"decay_days": 0}) or preview with {"dry_run": true}.
+    """
+    expected = os.environ.get("CURATOR_KEY")
+    if expected and not hmac.compare_digest(x_curator_key or "", expected):
+        raise HTTPException(
+            status_code=401,
+            detail={"error": "invalid or missing curator key", "code": "unauthorized"},
+        )
+    s = _require_store()
+    from akc.patterns import heartbeat as hb
+    summary = await s.apply_heartbeat(
+        stale_days=req.stale_days if req.stale_days is not None else hb.STALE_DAYS,
+        decay_days=req.decay_days if req.decay_days is not None else hb.DECAY_DAYS,
+        decay_delta=req.decay_delta if req.decay_delta is not None else hb.DECAY_DELTA,
+        dry_run=req.dry_run,
+    )
+    logger.info(
+        "Heartbeat (manual): scanned=%s decayed=%s demoted=%s dry_run=%s",
+        summary["scanned"], summary["n_decayed"], summary["n_demoted"], summary["dry_run"],
+    )
+    return summary
+
+
+@router.get("/steward/heartbeat")
+async def steward_heartbeat_status() -> dict:
+    """Last heartbeat run (proof-of-life) + the configured cadence/thresholds."""
+    s = _require_store()
+    from akc.patterns import heartbeat as hb
+    return {
+        "last_run": await s.load_last_heartbeat(),
+        "config": {
+            "interval_seconds": hb.INTERVAL_SECONDS,
+            "stale_days": hb.STALE_DAYS,
+            "decay_days": hb.DECAY_DAYS,
+            "decay_delta": hb.DECAY_DELTA,
+        },
+    }

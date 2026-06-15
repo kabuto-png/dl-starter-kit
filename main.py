@@ -98,6 +98,8 @@ async def lifespan(app: FastAPI):
     # Memory Service seed runs in background — must NOT block lifespan, otherwise
     # AgentBase health check times out before FastAPI accepts requests.
     asyncio.create_task(_seed_memory_service())
+    from akc.patterns import heartbeat as heartbeat_module
+    asyncio.create_task(heartbeat_module.run_loop(store))
     yield
     logger.info("AKC shutting down")
 

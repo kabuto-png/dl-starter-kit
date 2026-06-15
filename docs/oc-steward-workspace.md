@@ -29,6 +29,38 @@
 
 ---
 
+## Heartbeat — Autonomous Pulse (the Steward's SOUL)
+
+The Steward does not act only when a human prompts it. AKC runs an always-on
+**heartbeat** server-side (no Claude session, no laptop, no OpenClaw UI needed):
+every 30 min it applies one deterministic maintenance tick to the knowledge base.
+
+| Action | Rule |
+|---|---|
+| **Decay** | A non-demoted pattern idle > 14 days loses 0.02 confidence per tick and is re-tiered. Use-it-or-lose-it: unused gold fades to production. `last_updated` is reset only by a real success, so an idle pattern keeps fading until re-used. |
+| **Stale demote** | An experimental pattern never applied (`times_applied == 0`) idle > 30 days is a dead seed → `demoted`. |
+| **Proof of life** | Every tick (even a no-op) logs a `heartbeat_run` event, surfaced at `GET /steward/heartbeat`. |
+
+Cadence + thresholds are env-tunable (`AKC_HEARTBEAT_INTERVAL`, `AKC_HEARTBEAT_DECAY_DAYS`,
+`AKC_HEARTBEAT_STALE_DAYS`, `AKC_HEARTBEAT_DECAY_DELTA`, `AKC_HEARTBEAT_ENABLED`). Conservative
+defaults make a freshly-seeded KB a no-op for ~2 weeks, so live demo data is never altered by the loop.
+
+**Division of labour:** the heartbeat is the *mechanical* pulse — time-based hygiene that no
+per-outcome event covers. The OpenClaw Steward persona below is the *judgment* layer (dedup,
+contradiction detection, evidence-based promotion), run interactively. They are complementary.
+
+```bash
+# Fire one tick now — preview, or force a real tick:
+curl -sf -X POST "$AKC/steward/heartbeat" \
+  -H "Content-Type: application/json" -H "X-Curator-Key: <CURATOR_KEY>" \
+  -d '{"dry_run": true}'          # preview; {"decay_days": 0} forces a real tick
+
+# Last run + configured cadence (no key needed):
+curl -sf "$AKC/steward/heartbeat"
+```
+
+---
+
 ## Workspace Configuration
 
 Paste the markdown below into the OpenClaw workspace as agent instructions.

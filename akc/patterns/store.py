@@ -273,6 +273,72 @@ class JsonlStore:
             await asyncio.to_thread(self._append_history_sync, event)
             return updated
 
+    async def apply_heartbeat(
+        self,
+        *,
+        stale_days: int,
+        decay_days: int,
+        decay_delta: float,
+        dry_run: bool = False,
+        now: datetime | None = None,
+    ) -> dict:
+        """Run one Steward heartbeat tick under the write lock.
+
+        Loads all patterns, computes time-based decay / stale-demotion via
+        heartbeat.compute_tick, applies the changes in one atomic write, and
+        appends a single `heartbeat_run` event to history — always, even a no-op,
+        as a proof-of-life signal. dry_run computes the summary without writing.
+        last_updated is never touched, so an idle pattern keeps decaying each tick.
+        """
+        from akc.patterns.heartbeat import compute_tick  # late import — avoid cycle
+        now = now or datetime.now(timezone.utc)
+        async with self._lock:
+            patterns = await asyncio.to_thread(self._read_patterns_sync)
+            changes, summary = compute_tick(
+                list(patterns.values()), now,
+                stale_days=stale_days, decay_days=decay_days, decay_delta=decay_delta,
+            )
+            summary["dry_run"] = dry_run
+            if changes and not dry_run:
+                for pid, change in changes.items():
+                    if pid in patterns:
+                        patterns[pid] = {**patterns[pid], **change}
+                await asyncio.to_thread(self._write_patterns_atomic_sync, patterns)
+            await asyncio.to_thread(self._append_history_sync, {
+                "type": "heartbeat_run",
+                "ran_at": summary["ran_at"],
+                "scanned": summary["scanned"],
+                "n_decayed": summary["n_decayed"],
+                "n_demoted": summary["n_demoted"],
+                "dry_run": dry_run,
+                "timestamp": summary["ran_at"],
+            })
+        return summary
+
+    async def load_last_heartbeat(self) -> dict | None:
+        """Return the most recent heartbeat_run event, or None if none recorded."""
+        return await asyncio.to_thread(self._load_last_heartbeat_sync)
+
+    def _load_last_heartbeat_sync(self) -> dict | None:
+        if not self._history_path.exists():
+            return None
+        latest: dict | None = None
+        with open(self._history_path, encoding="utf-8") as f:
+            for line in f:
+                line = line.strip()
+                if not line:
+                    continue
+                try:
+                    e = json.loads(line)
+                except json.JSONDecodeError:
+                    continue
+                if e.get("type") != "heartbeat_run":
+                    continue
+                ts = e.get("ran_at") or e.get("timestamp") or ""
+                if latest is None or ts > (latest.get("ran_at") or ""):
+                    latest = e
+        return latest
+
     async def load_gaps(self) -> list[dict]:
         """Aggregate empty-recall queries (result_count==0) into coverage gaps.
 
