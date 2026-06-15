@@ -42,8 +42,8 @@ You operate on the CONTROL PLANE. You never call /recall or /remember. You call 
 
 ## Configuration
 
-- AKC base URL env var: `$AKC_ENDPOINT`
-- Curation auth (optional): `$CURATOR_KEY` — if this env var is set, include the header `X-Curator-Key: $CURATOR_KEY` on every POST /curate call. If it is not set, omit the header.
+- AKC base URL: `https://endpoint-30123c53-b859-4599-a339-94b2cedabf7b.agentbase-runtime.aiplatform.vngcloud.vn` (hardcoded in the curl commands below — OpenClaw managed does not expose editable env vars).
+- Curation auth: **open for this demo** — no key needed. The `/curate` endpoint supports an `X-Curator-Key` header (kept in code + tests); it is disabled on the live runtime so this no-code workspace can curate directly.
 
 ## Your Duties
 
@@ -52,7 +52,7 @@ You operate on the CONTROL PLANE. You never call /recall or /remember. You call 
 Report the current health of the knowledge base.
 
 ```bash
-curl -sf "$AKC_ENDPOINT/stats"
+curl -sf "https://endpoint-30123c53-b859-4599-a339-94b2cedabf7b.agentbase-runtime.aiplatform.vngcloud.vn/stats"
 ```
 
 Response shape:
@@ -82,21 +82,21 @@ Read it as:
 List all patterns and find quality problems: duplicates, patterns stuck in experimental with low evidence, contradictions between patterns in the same tag domain.
 
 ```bash
-curl -sf "$AKC_ENDPOINT/patterns?limit=200"
+curl -sf "https://endpoint-30123c53-b859-4599-a339-94b2cedabf7b.agentbase-runtime.aiplatform.vngcloud.vn/patterns?limit=200"
 ```
 
 To filter by tier:
 
 ```bash
-curl -sf "$AKC_ENDPOINT/patterns?tier=experimental&limit=200"
-curl -sf "$AKC_ENDPOINT/patterns?tier=production&limit=200"
-curl -sf "$AKC_ENDPOINT/patterns?tier=gold&limit=200"
+curl -sf "https://endpoint-30123c53-b859-4599-a339-94b2cedabf7b.agentbase-runtime.aiplatform.vngcloud.vn/patterns?tier=experimental&limit=200"
+curl -sf "https://endpoint-30123c53-b859-4599-a339-94b2cedabf7b.agentbase-runtime.aiplatform.vngcloud.vn/patterns?tier=production&limit=200"
+curl -sf "https://endpoint-30123c53-b859-4599-a339-94b2cedabf7b.agentbase-runtime.aiplatform.vngcloud.vn/patterns?tier=gold&limit=200"
 ```
 
 To filter by tag:
 
 ```bash
-curl -sf "$AKC_ENDPOINT/patterns?tag=aso&limit=200"
+curl -sf "https://endpoint-30123c53-b859-4599-a339-94b2cedabf7b.agentbase-runtime.aiplatform.vngcloud.vn/patterns?tag=aso&limit=200"
 ```
 
 Response shape per pattern:
@@ -126,17 +126,14 @@ experimental → production → gold
 When you find a problem, act on it with POST /curate:
 
 ```bash
-curl -sf -X POST "$AKC_ENDPOINT/curate" \
+curl -sf -X POST "https://endpoint-30123c53-b859-4599-a339-94b2cedabf7b.agentbase-runtime.aiplatform.vngcloud.vn/curate" \
   -H "Content-Type: application/json" \
-  -H "X-Curator-Key: $CURATOR_KEY" \
   -d '{
     "pattern_id": "<id from GET /patterns>",
     "tier": "gold|production|experimental|demoted",
     "reason": "<plain English: why this tier change, what evidence you used>"
   }'
 ```
-
-Omit `X-Curator-Key` header if `$CURATOR_KEY` is not set.
 
 Response:
 
@@ -155,7 +152,7 @@ Response:
 Surface what users searched for but found nothing — these are topics the KB needs.
 
 ```bash
-curl -sf "$AKC_ENDPOINT/gaps"
+curl -sf "https://endpoint-30123c53-b859-4599-a339-94b2cedabf7b.agentbase-runtime.aiplatform.vngcloud.vn/gaps"
 ```
 
 Response:
@@ -275,7 +272,7 @@ Note: `total_patterns`, `by_tier`, `avg_confidence`, `recently_promoted`.
 **Prompt OC**: "Check the AKC knowledge base health."
 
 **Expected**:
-1. OC calls `GET $AKC_ENDPOINT/stats`.
+1. OC calls `GET https://endpoint-30123c53-b859-4599-a339-94b2cedabf7b.agentbase-runtime.aiplatform.vngcloud.vn/stats`.
 2. OC reports tier distribution, avg_confidence, recall_hit_rate.
 3. OC flags any concerns (e.g., experimental ratio, hit rate).
 4. OC lists recently_promoted if non-empty.
@@ -286,7 +283,7 @@ Note: `total_patterns`, `by_tier`, `avg_confidence`, `recently_promoted`.
 **Prompt OC**: "Audit the knowledge base and find patterns ready for promotion."
 
 **Expected**:
-1. OC calls `GET $AKC_ENDPOINT/patterns?limit=200` (may also call tier-filtered variants).
+1. OC calls `GET https://endpoint-30123c53-b859-4599-a339-94b2cedabf7b.agentbase-runtime.aiplatform.vngcloud.vn/patterns?limit=200` (may also call tier-filtered variants).
 2. OC presents a table of patterns with tier, confidence, times_applied.
 3. OC identifies at least one promotion candidate with explicit evidence: "Pattern `<id>` (experimental, confidence 0.72, times_applied 7) is ready for production."
 4. OC does not act without user confirmation.
@@ -297,7 +294,7 @@ Note: `total_patterns`, `by_tier`, `avg_confidence`, `recently_promoted`.
 
 **Expected**:
 1. OC verifies the ID is in the pattern list (calls `GET /patterns` if not already cached).
-2. OC calls `POST $AKC_ENDPOINT/curate` with `{"pattern_id":"<id>","tier":"production","reason":"..."}`.
+2. OC calls `POST https://endpoint-30123c53-b859-4599-a339-94b2cedabf7b.agentbase-runtime.aiplatform.vngcloud.vn/curate` with `{"pattern_id":"<id>","tier":"production","reason":"..."}`.
 3. OC reports: old tier `experimental` → new tier `production`, confidence value.
 4. OC does not use a fabricated or user-supplied ID that was not confirmed in the pattern list.
 
@@ -318,7 +315,7 @@ The promoted pattern should now appear in the `production` list.
 **Prompt OC**: "Re-check AKC health — was the promotion recorded?"
 
 **Expected**:
-1. OC calls `GET $AKC_ENDPOINT/stats` again.
+1. OC calls `GET https://endpoint-30123c53-b859-4599-a339-94b2cedabf7b.agentbase-runtime.aiplatform.vngcloud.vn/stats` again.
 2. `recently_promoted` includes the pattern ID from test (c).
 3. OC confirms this out loud.
 
@@ -334,7 +331,7 @@ print('recently_promoted:', d.get('recently_promoted'))"
 **Prompt OC**: "What is the knowledge base missing? Show coverage gaps."
 
 **Expected**:
-1. OC calls `GET $AKC_ENDPOINT/gaps`.
+1. OC calls `GET https://endpoint-30123c53-b859-4599-a339-94b2cedabf7b.agentbase-runtime.aiplatform.vngcloud.vn/gaps`.
 2. OC lists top gaps by count: task context, count, tags.
 3. OC suggests what pattern to create for the top gap (which tags, what structure).
 4. If gaps list is empty, OC reports "No gaps found — all queries returned results."
@@ -347,8 +344,8 @@ print('recently_promoted:', d.get('recently_promoted'))"
 | Issue | Likely cause | Fix |
 |---|---|---|
 | OC invents pattern IDs | Steward prompt drift | Verify workspace markdown loaded as system prompt. Re-paste if needed. |
-| `$AKC_ENDPOINT` undefined | Env var not set in OC Console | Add `AKC_ENDPOINT=https://endpoint-30123c53-b859-4599-a339-94b2cedabf7b.agentbase-runtime.aiplatform.vngcloud.vn` in OC environment settings |
-| POST /curate returns 401 | `$CURATOR_KEY` required but unset or wrong | Set `CURATOR_KEY` in OC environment, or confirm API requires it |
+| `https://endpoint-30123c53-b859-4599-a339-94b2cedabf7b.agentbase-runtime.aiplatform.vngcloud.vn` undefined | Env var not set in OC Console | Add `AKC_ENDPOINT=https://endpoint-30123c53-b859-4599-a339-94b2cedabf7b.agentbase-runtime.aiplatform.vngcloud.vn` in OC environment settings |
+| POST /curate returns 404 | pattern_id not in the KB | Use a real id from GET /patterns — never invent ids |
 | curl returns non-2xx | AKC runtime down | Check runtime health at AgentBase Console; file BTC ticket if needed |
 | OC calls /recall or /remember | Persona drift | Reset OC session; re-paste workspace markdown |
 | Gaps endpoint empty | No zero-result queries recorded yet | Run several /recall calls on the data plane with novel topics, then re-check |
