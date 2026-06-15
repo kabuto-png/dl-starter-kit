@@ -1,0 +1,370 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<title>AKC Quickstart — Tech Sharing</title>
+<script src="https://cdn.tailwindcss.com"></script>
+<link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;700&family=Inter:wght@400;600;700;800;900&display=swap" rel="stylesheet" />
+<style>
+  :root {
+    --bg: #0d1117;
+    --surface: #161b22;
+    --border: #30363d;
+    --text: #e6edf3;
+    --text-dim: #8b949e;
+    --green: #3fb950;
+    --orange: #ff7b72;
+    --blue: #58a6ff;
+    --purple: #d2a8ff;
+    --yellow: #d29922;
+    --pink: #ff7eb6;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { font-family: 'Inter', system-ui, sans-serif; background: var(--bg); color: var(--text); }
+  .mono { font-family: 'JetBrains Mono', monospace; }
+  .deck { display: grid; gap: 24px; padding: 24px; }
+  .slide { width: 100%; aspect-ratio: 16/9; max-width: 1280px; margin: 0 auto;
+    background: var(--bg); border: 1px solid var(--border); border-radius: 12px;
+    padding: 64px 80px; position: relative; overflow: hidden; }
+
+  .eyebrow { font-family: 'JetBrains Mono', monospace; font-size: 13px; letter-spacing: 0.2em;
+    text-transform: uppercase; color: var(--text-dim); }
+  h1 { font-size: clamp(48px, 6vw, 88px); font-weight: 900; letter-spacing: -0.03em; line-height: 1; }
+  h2 { font-size: clamp(36px, 4.5vw, 64px); font-weight: 800; letter-spacing: -0.02em; line-height: 1.1; }
+  h3 { font-size: 28px; font-weight: 700; }
+
+  .code-block { background: #010409; border: 1px solid var(--border); border-radius: 8px;
+    padding: 24px 28px; font-family: 'JetBrains Mono', monospace; font-size: 16px; line-height: 1.7;
+    color: var(--text); overflow: hidden; }
+  .code-block .comment { color: #8b949e; }
+  .code-block .str { color: #a5d6ff; }
+  .code-block .key { color: #79c0ff; }
+  .code-block .fn { color: #d2a8ff; }
+  .code-block .cmd { color: #3fb950; }
+  .code-block .out { color: #ffa657; }
+
+  .terminal-header { display: flex; gap: 8px; padding: 12px 16px; background: #161b22; border-radius: 8px 8px 0 0; border: 1px solid var(--border); border-bottom: none; }
+  .terminal-dot { width: 12px; height: 12px; border-radius: 50%; }
+  .terminal-body { background: #010409; border: 1px solid var(--border); border-radius: 0 0 8px 8px;
+    padding: 24px 28px; font-family: 'JetBrains Mono', monospace; font-size: 15px; line-height: 1.7; }
+
+  .card { background: var(--surface); border: 1px solid var(--border); border-radius: 12px; padding: 24px 28px; }
+  .badge { display: inline-block; padding: 4px 12px; border-radius: 999px; font-size: 12px;
+    font-family: 'JetBrains Mono', monospace; letter-spacing: 0.1em; text-transform: uppercase; }
+  .badge.green { background: rgba(63, 185, 80, 0.15); color: var(--green); border: 1px solid rgba(63, 185, 80, 0.3); }
+  .badge.blue  { background: rgba(88, 166, 255, 0.15); color: var(--blue);  border: 1px solid rgba(88, 166, 255, 0.3); }
+  .badge.purple{ background: rgba(210, 168, 255, 0.15); color: var(--purple); border: 1px solid rgba(210, 168, 255, 0.3); }
+  .badge.orange{ background: rgba(255, 123, 114, 0.15); color: var(--orange); border: 1px solid rgba(255, 123, 114, 0.3); }
+
+  .footer { position: absolute; bottom: 24px; left: 80px; right: 80px;
+    display: flex; justify-content: space-between; align-items: center;
+    border-top: 1px solid var(--border); padding-top: 16px;
+    font-family: 'JetBrains Mono', monospace; font-size: 12px; color: var(--text-dim); letter-spacing: 0.1em; }
+</style>
+</head>
+<body>
+<div class="deck">
+
+  <!-- ============ SLIDE 1: COVER ============ -->
+  <section class="slide" style="display:flex; flex-direction:column; justify-content:center;">
+    <div class="eyebrow" style="color: var(--green);">$ ./quickstart.sh — 5 phút setup</div>
+    <h1 style="margin-top:32px;">
+      <span style="color: var(--blue);">AKC</span><br/>
+      Quickstart Guide
+    </h1>
+    <div style="font-size: 22px; color: var(--text-dim); margin-top: 24px; max-width: 800px;">
+      3 cách dùng <strong style="color: var(--text);">Agent Knowledge Catalyst</strong> — HTTP memory layer cho AI agents.
+      Compound learning, no vendor lock-in.
+    </div>
+    <div style="display: flex; gap: 12px; margin-top: 40px;">
+      <span class="badge green">curl direct</span>
+      <span class="badge blue">openclaw chat</span>
+      <span class="badge purple">claude code skill</span>
+    </div>
+    <div class="footer">
+      <span>VNG Publishing · DL Starter Kit · Team 23</span>
+      <span>01 / 07</span>
+      <span>github.com/kabuto-png/dl-starter-kit</span>
+    </div>
+  </section>
+
+  <!-- ============ SLIDE 2: AGENDA ============ -->
+  <section class="slide" style="display:flex; flex-direction:column;">
+    <div class="eyebrow">// agenda</div>
+    <h2 style="margin-top:24px; color: var(--text);">3 ways · pick one</h2>
+
+    <div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 24px; margin-top: 40px;">
+      <div class="card" style="border-left: 4px solid var(--green);">
+        <span class="badge green">01</span>
+        <h3 style="margin-top: 16px; color: var(--green);">curl direct</h3>
+        <div style="color: var(--text-dim); margin-top: 12px; font-size: 15px;">For devs + judges who want to verify endpoints work, see live data.</div>
+        <div class="mono" style="margin-top: 16px; font-size: 13px; color: var(--text-dim);">~1 min</div>
+      </div>
+
+      <div class="card" style="border-left: 4px solid var(--blue);">
+        <span class="badge blue">02</span>
+        <h3 style="margin-top: 16px; color: var(--blue);">OpenClaw chat</h3>
+        <div style="color: var(--text-dim); margin-top: 12px; font-size: 15px;">No-code agent persona. Judges click → ASO Specialist responds with cited patterns.</div>
+        <div class="mono" style="margin-top: 16px; font-size: 13px; color: var(--text-dim);">~2 min</div>
+      </div>
+
+      <div class="card" style="border-left: 4px solid var(--purple);">
+        <span class="badge purple">03</span>
+        <h3 style="margin-top: 16px; color: var(--purple);">Claude Code skill</h3>
+        <div style="color: var(--text-dim); margin-top: 12px; font-size: 15px;">Universal AGENTS.md. Works with Claude / Codex / Gemini / Antigravity.</div>
+        <div class="mono" style="margin-top: 16px; font-size: 13px; color: var(--text-dim);">~5 min</div>
+      </div>
+    </div>
+
+    <div class="footer">
+      <span>$ select method</span>
+      <span>02 / 07</span>
+      <span>akc-quickstart</span>
+    </div>
+  </section>
+
+  <!-- ============ SLIDE 3: WAY 1 — CURL DIRECT ============ -->
+  <section class="slide">
+    <div class="eyebrow"><span class="badge green" style="margin-right:12px;">METHOD 01</span> curl direct · for devs + judges</div>
+    <h2 style="margin-top: 16px; color: var(--green);">Hit AKC endpoints directly</h2>
+
+    <div class="terminal-header">
+      <span class="terminal-dot" style="background:#ff5f57"></span>
+      <span class="terminal-dot" style="background:#febc2e"></span>
+      <span class="terminal-dot" style="background:#28c840"></span>
+      <span class="mono" style="margin-left:12px; font-size:12px; color: var(--text-dim);">~/dl-starter-kit · bash</span>
+    </div>
+    <div class="terminal-body" style="margin-top: 16px;">
+<span class="comment"># Set endpoint</span>
+<span class="cmd">$ export</span> AKC=<span class="str">https://endpoint-30123c53-...agentbase-runtime.aiplatform.vngcloud.vn</span>
+
+<span class="comment"># Live health check</span>
+<span class="cmd">$ curl</span> -sf "<span class="str">$AKC/health</span>"
+<span class="out">{"status":"ok","pattern_count":34}</span>
+
+<span class="comment"># Recall patterns for JP launch</span>
+<span class="cmd">$ curl</span> -X POST "<span class="str">$AKC/recall</span>" \
+  -d '{<span class="key">"task_context"</span>: <span class="str">"Plan JP launch"</span>,
+       <span class="key">"tags"</span>: [<span class="str">"aso","jp","keyword"</span>],
+       <span class="key">"top_k"</span>: 5}'
+
+<span class="out">→ Returns 3 patterns including HERO d25f02b1 (gold, 0.91)</span>
+    </div>
+
+    <div class="footer">
+      <span>method 01 of 03</span>
+      <span>03 / 07</span>
+      <span>akc / curl</span>
+    </div>
+  </section>
+
+  <!-- ============ SLIDE 4: WAY 2 — OPENCLAW CHAT ============ -->
+  <section class="slide">
+    <div class="eyebrow"><span class="badge blue" style="margin-right:12px;">METHOD 02</span> openclaw chat · for non-dev demo</div>
+    <h2 style="margin-top: 16px; color: var(--blue);">Talk to AKC ASO Specialist</h2>
+
+    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 32px; margin-top: 32px;">
+      <div>
+        <div class="mono" style="font-size: 13px; color: var(--text-dim); letter-spacing: 0.1em;">OPEN URL:</div>
+        <div class="card mono" style="margin-top: 8px; font-size: 14px; color: var(--blue); word-break: break-all; line-height: 1.6;">
+          openclaw-111666-akc-oc.agentbase-runtime.aiplatform.vngcloud.vn /chat?session=demo
+        </div>
+        <div style="margin-top: 24px;">
+          <div class="mono" style="font-size: 13px; color: var(--text-dim); letter-spacing: 0.1em;">PERSONA:</div>
+          <div class="card" style="margin-top: 8px;">
+            <h3 style="color: var(--blue);">📱 AKC ASO Specialist</h3>
+            <div style="font-size: 14px; color: var(--text-dim); margin-top: 8px;">
+              VNG Publishing · APAC markets · pre-launch planner. Always recalls before, remembers after.
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div>
+        <div class="mono" style="font-size: 13px; color: var(--text-dim); letter-spacing: 0.1em;">PASTE 3 TEST PROMPTS:</div>
+        <div class="card" style="margin-top: 8px; border-left: 3px solid var(--green);">
+          <span class="mono" style="font-size: 11px; color: var(--green);">→ 01 · COLD START</span>
+          <div style="font-size: 13px; margin-top: 6px; color: var(--text);">"Launch casual game in Japan App Store. Need week-1 keyword strategy."</div>
+        </div>
+        <div class="card" style="margin-top: 12px; border-left: 3px solid var(--orange);">
+          <span class="mono" style="font-size: 11px; color: var(--orange);">→ 02 · COMPOUND</span>
+          <div style="font-size: 13px; margin-top: 6px; color: var(--text);">"Same game, now Korea Play Store. What transfers from JP?"</div>
+        </div>
+        <div class="card" style="margin-top: 12px; border-left: 3px solid var(--purple);">
+          <span class="mono" style="font-size: 11px; color: var(--purple);">→ 03 · ANTI-HALLUCINATION</span>
+          <div style="font-size: 13px; margin-top: 6px; color: var(--text);">"Launch hyper-casual in Mongolia." (agent must NOT fabricate IDs)</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="footer">
+      <span>method 02 of 03</span>
+      <span>04 / 07</span>
+      <span>akc / openclaw</span>
+    </div>
+  </section>
+
+  <!-- ============ SLIDE 5: WAY 3 — CLAUDE CODE SKILL ============ -->
+  <section class="slide">
+    <div class="eyebrow"><span class="badge purple" style="margin-right:12px;">METHOD 03</span> claude code skill · universal agents.md</div>
+    <h2 style="margin-top: 16px; color: var(--purple);">Plug AKC into any AI agent</h2>
+
+    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 32px; margin-top: 24px;">
+      <div>
+        <div class="terminal-header">
+          <span class="terminal-dot" style="background:#ff5f57"></span>
+          <span class="terminal-dot" style="background:#febc2e"></span>
+          <span class="terminal-dot" style="background:#28c840"></span>
+          <span class="mono" style="margin-left:12px; font-size:12px; color: var(--text-dim);">setup</span>
+        </div>
+        <div class="terminal-body" style="margin-top: 16px; font-size: 13px;">
+<span class="cmd">$ git clone</span> github.com/kabuto-png/dl-starter-kit
+<span class="cmd">$ cd</span> dl-starter-kit
+
+<span class="cmd">$ export</span> AKC_ENDPOINT=<span class="str">https://...</span>
+
+<span class="comment"># Open with any AI agent CLI</span>
+<span class="cmd">$ claude</span>   <span class="comment"># or: codex, gemini, aider</span>
+
+<span class="comment"># Skill auto-fires on task start</span>
+<span class="cmd">&gt;</span> Debug 500 in /signup endpoint
+
+<span class="out">→ skill calls /recall before
+→ skill calls /remember after</span>
+        </div>
+      </div>
+
+      <div>
+        <div class="mono" style="font-size: 13px; color: var(--text-dim); letter-spacing: 0.1em;">SKILL STRUCTURE:</div>
+        <div class="card mono" style="margin-top: 8px; font-size: 13px; line-height: 1.8; color: var(--text);">
+<span style="color: var(--purple);">skill/</span><br/>
+├── <span style="color: var(--blue);">SKILL.md</span>          <span class="comment"># YAML + pushy description</span><br/>
+├── <span style="color: var(--blue);">references/</span><br/>
+│   ├── tags-taxonomy.md<br/>
+│   ├── tier-semantics.md<br/>
+│   └── error-patterns.md<br/>
+├── <span style="color: var(--blue);">examples.md</span><br/>
+└── <span style="color: var(--blue);">evals/evals.json</span>  <span class="comment"># 6 test cases</span>
+        </div>
+        <div style="margin-top: 16px;">
+          <span class="badge green">claude code</span>
+          <span class="badge green">codex</span>
+          <span class="badge green">gemini</span>
+          <span class="badge green">antigravity</span>
+        </div>
+      </div>
+    </div>
+
+    <div class="footer">
+      <span>method 03 of 03</span>
+      <span>05 / 07</span>
+      <span>akc / skill</span>
+    </div>
+  </section>
+
+  <!-- ============ SLIDE 6: LIVE STATE ============ -->
+  <section class="slide">
+    <div class="eyebrow">// production · live now</div>
+    <h2 style="margin-top: 16px; color: var(--green);">Live state · D5 16:30 ICT</h2>
+
+    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 32px; margin-top: 32px;">
+      <div class="card">
+        <div class="mono" style="color: var(--text-dim); font-size: 13px; letter-spacing: 0.1em;">RUNTIME STATUS</div>
+        <div style="margin-top: 16px; display: flex; flex-direction: column; gap: 12px;">
+          <div style="display: flex; justify-content: space-between; padding-bottom: 8px; border-bottom: 1px solid var(--border);">
+            <span style="color: var(--text-dim); font-size: 14px;">AKC endpoint</span>
+            <span class="mono" style="color: var(--green); font-size: 14px;">✓ ACTIVE</span>
+          </div>
+          <div style="display: flex; justify-content: space-between; padding-bottom: 8px; border-bottom: 1px solid var(--border);">
+            <span style="color: var(--text-dim); font-size: 14px;">OC akc-oc instance</span>
+            <span class="mono" style="color: var(--green); font-size: 14px;">✓ ACTIVE</span>
+          </div>
+          <div style="display: flex; justify-content: space-between; padding-bottom: 8px; border-bottom: 1px solid var(--border);">
+            <span style="color: var(--text-dim); font-size: 14px;">LLM (Gemma 4-31b)</span>
+            <span class="mono" style="color: var(--green); font-size: 14px;">✓ LOCKED</span>
+          </div>
+          <div style="display: flex; justify-content: space-between;">
+            <span style="color: var(--text-dim); font-size: 14px;">Universal skill</span>
+            <span class="mono" style="color: var(--green); font-size: 14px;">✓ 4 platforms</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="mono" style="color: var(--text-dim); font-size: 13px; letter-spacing: 0.1em;">/stats SNAPSHOT</div>
+        <div style="margin-top: 16px; display: grid; grid-template-columns: 1fr 1fr; gap: 16px;">
+          <div>
+            <div class="mono" style="font-size: 56px; font-weight: 700; color: var(--blue);">34</div>
+            <div style="color: var(--text-dim); font-size: 12px; text-transform: uppercase; letter-spacing: 0.1em;">patterns</div>
+          </div>
+          <div>
+            <div class="mono" style="font-size: 56px; font-weight: 700; color: var(--green);">14</div>
+            <div style="color: var(--text-dim); font-size: 12px; text-transform: uppercase; letter-spacing: 0.1em;">recall calls</div>
+          </div>
+          <div>
+            <div class="mono" style="font-size: 56px; font-weight: 700; color: var(--orange);">4</div>
+            <div style="color: var(--text-dim); font-size: 12px; text-transform: uppercase; letter-spacing: 0.1em;">outcomes</div>
+          </div>
+          <div>
+            <div class="mono" style="font-size: 56px; font-weight: 700; color: var(--yellow);">6</div>
+            <div style="color: var(--text-dim); font-size: 12px; text-transform: uppercase; letter-spacing: 0.1em;">gold tier</div>
+          </div>
+        </div>
+        <div class="mono" style="margin-top: 16px; padding-top: 12px; border-top: 1px solid var(--border); font-size: 12px; color: var(--text-dim);">
+          Self-promotion: HERO <span style="color: var(--yellow);">d25f02b1</span> production → gold @ 04:25 UTC
+        </div>
+      </div>
+    </div>
+
+    <div class="footer">
+      <span>$ curl $AKC/stats</span>
+      <span>06 / 07</span>
+      <span>akc / live</span>
+    </div>
+  </section>
+
+  <!-- ============ SLIDE 7: CTA / Q&A ============ -->
+  <section class="slide" style="background: linear-gradient(135deg, #0d1117 0%, #161b22 100%);">
+    <div class="eyebrow">// q &amp; a · submission</div>
+    <h2 style="margin-top: 16px;">Two teams. <span style="color: var(--green);">One memory.</span> <span style="color: var(--blue);">Compound learning.</span></h2>
+
+    <div style="display: grid; grid-template-columns: 2fr 1fr; gap: 40px; margin-top: 48px;">
+      <div style="display: flex; flex-direction: column; gap: 16px;">
+        <div class="card" style="display: flex; align-items: center; gap: 24px;">
+          <span class="badge green" style="font-size: 14px;">REPO</span>
+          <span class="mono" style="font-size: 18px; color: var(--blue);">github.com/kabuto-png/dl-starter-kit</span>
+        </div>
+        <div class="card" style="display: flex; align-items: center; gap: 24px;">
+          <span class="badge blue" style="font-size: 14px;">DOCS</span>
+          <span class="mono" style="font-size: 14px; color: var(--text);">docs/QUICKSTART.md · docs/AKC-ORIENTATION.md · docs/openclaw-integration.md</span>
+        </div>
+        <div class="card" style="display: flex; align-items: center; gap: 24px;">
+          <span class="badge purple" style="font-size: 14px;">TRAILER</span>
+          <span class="mono" style="font-size: 14px; color: var(--text);">AKCTrailer_v4.mp4 · 45s · voice + cinematic</span>
+        </div>
+        <div class="card" style="display: flex; align-items: center; gap: 24px;">
+          <span class="badge orange" style="font-size: 14px;">LICENSE</span>
+          <span class="mono" style="font-size: 14px; color: var(--text);">Apache-2.0 · production-ready</span>
+        </div>
+      </div>
+
+      <div class="card" style="background: rgba(63, 185, 80, 0.05); border-color: var(--green);">
+        <div class="mono" style="color: var(--green); font-size: 14px; letter-spacing: 0.1em;">→ SUBMISSION</div>
+        <h3 style="margin-top: 12px;">Clawathon 2026</h3>
+        <div style="color: var(--text-dim); font-size: 14px; margin-top: 8px;">Track: Automation &amp; Integration</div>
+        <div style="color: var(--text-dim); font-size: 14px;">Team: DL Starter Kit · 23</div>
+        <div style="color: var(--text-dim); font-size: 14px;">Deadline: 2026-06-17 12:00 ICT</div>
+        <div class="mono" style="margin-top: 24px; padding-top: 16px; border-top: 1px solid var(--border); font-size: 12px; color: var(--text-dim);">VNG Publishing</div>
+      </div>
+    </div>
+
+    <div class="footer">
+      <span>$ ./submit.sh</span>
+      <span>07 / 07 — FIN</span>
+      <span>akc / 2026</span>
+    </div>
+  </section>
+
+</div>
+</body>
+</html>
