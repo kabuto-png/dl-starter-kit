@@ -20,3 +20,5 @@ dist/
 build/
 kb_data/
 data/
+.env.deploy
+.vcr-credentials.json

@@ -18,3 +18,4 @@ docs/
 tests/
 kb/
 kb_data/
+.vcr-credentials.json
