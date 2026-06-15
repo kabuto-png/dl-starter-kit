@@ -1,0 +1,145 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>AKC — Agent Knowledge Catalyst · Architecture</title>
+<style>
+  :root{
+    --bg:#0b0e14; --panel:#121722; --panel2:#0f141d; --line:#222b3a;
+    --txt:#e6edf3; --mut:#8b97a7;
+    --cyan:#22d3ee; --gold:#f5b301; --violet:#a78bfa; --green:#34d399;
+  }
+  *{box-sizing:border-box}
+  body{margin:0;background:radial-gradient(1200px 600px at 50% -10%,#16203180,transparent),var(--bg);
+    color:var(--txt);font:15px/1.5 -apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;
+    padding:40px 20px 60px}
+  .wrap{max-width:980px;margin:0 auto}
+  h1{font-size:30px;margin:0;letter-spacing:-.5px}
+  .tag{color:var(--mut);margin:6px 0 0;font-size:16px}
+  .lede{margin:18px 0 34px;padding:14px 18px;border-left:3px solid var(--gold);
+    background:#1a1f2b80;border-radius:0 8px 8px 0;color:#cfd8e3}
+  h2{font-size:13px;text-transform:uppercase;letter-spacing:1.5px;color:var(--mut);
+    margin:38px 0 16px;font-weight:600}
+  .col{display:flex;flex-direction:column;align-items:center;gap:0}
+  .plane{width:100%;border:1px dashed var(--line);border-radius:12px;padding:14px;background:#0f141d80}
+  .plane .lbl{font-size:11px;letter-spacing:1.5px;color:var(--mut);text-transform:uppercase;margin-bottom:10px}
+  .chips{display:flex;gap:10px;flex-wrap:wrap;justify-content:center}
+  .chip{background:var(--panel);border:1px solid var(--line);border-radius:999px;padding:8px 16px;font-size:14px}
+  .card{background:var(--panel);border:1px solid var(--line);border-radius:14px;padding:16px 20px;text-align:center;width:min(560px,100%)}
+  .card .t{font-weight:700;font-size:17px}
+  .card .s{color:var(--mut);font-size:13px;margin-top:4px}
+  .card .api{font-family:ui-monospace,SFMono-Regular,Menlo,monospace;font-size:12px;color:#aeb9c8;margin-top:8px}
+  .mcp{border-color:var(--cyan);box-shadow:0 0 0 1px #22d3ee30, 0 8px 30px #22d3ee14}
+  .mcp .t{color:var(--cyan)}
+  .akc{border-color:var(--gold);box-shadow:0 0 0 1px #f5b30130, 0 10px 40px #f5b30118;width:min(620px,100%)}
+  .akc .t{color:var(--gold);font-size:19px}
+  .oc{border-color:var(--violet);box-shadow:0 0 0 1px #a78bfa30, 0 8px 30px #a78bfa14}
+  .oc .t{color:var(--violet)}
+  .arrow{color:var(--mut);font-size:12px;display:flex;flex-direction:column;align-items:center;gap:2px;padding:10px 0}
+  .arrow b{font-size:20px;line-height:1;color:#566175}
+  .split{display:flex;gap:20px;width:100%;align-items:stretch;justify-content:center;flex-wrap:wrap}
+  .split .side{flex:1;min-width:260px;display:flex;flex-direction:column;align-items:center}
+  .note{color:var(--mut);font-size:12.5px;text-align:center;margin-top:8px}
+  /* flywheel */
+  .fly{display:flex;gap:0;flex-wrap:wrap;justify-content:center;align-items:center}
+  .step{background:var(--panel);border:1px solid var(--line);border-radius:12px;padding:14px 16px;width:190px;text-align:center}
+  .step .n{display:inline-block;width:22px;height:22px;border-radius:50%;background:#1f6feb22;border:1px solid var(--cyan);color:var(--cyan);font-size:12px;line-height:22px;margin-bottom:6px}
+  .step .t{font-size:14px;font-weight:600}
+  .step .s{font-size:12px;color:var(--mut);margin-top:3px}
+  .ar{color:#566175;font-size:22px;padding:0 8px}
+  /* stats */
+  .grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(140px,1fr));gap:12px}
+  .stat{background:var(--panel);border:1px solid var(--line);border-radius:12px;padding:16px;text-align:center}
+  .stat .v{font-size:26px;font-weight:700}
+  .stat .k{font-size:12px;color:var(--mut);margin-top:2px}
+  .g{color:var(--gold)} .c{color:var(--cyan)} .v2{color:var(--violet)} .gr{color:var(--green)}
+  table{width:100%;border-collapse:collapse;margin-top:4px;font-size:13px}
+  td,th{border:1px solid var(--line);padding:9px 12px;text-align:left}
+  th{color:var(--mut);font-weight:600;font-size:11px;text-transform:uppercase;letter-spacing:1px}
+  .mono{font-family:ui-monospace,SFMono-Regular,Menlo,monospace;color:#aeb9c8;font-size:12px}
+  .foot{margin-top:40px;color:#566175;font-size:12px;text-align:center}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <h1>AKC · <span style="color:var(--gold)">Agent Knowledge Catalyst</span></h1>
+  <p class="tag">Compound team memory for AI agents</p>
+
+  <div class="lede"><b>One MCP is the only thing users plug in.</b> Behind it, <b style="color:var(--gold)">AKC</b> remembers and <b style="color:var(--violet)">OpenClaw</b> curates — a loop that makes team memory get smarter on its own.</div>
+
+  <h2>System — two planes meeting at AKC</h2>
+  <div class="col">
+    <div class="plane">
+      <div class="lbl">Data plane · end users</div>
+      <div class="chips">
+        <span class="chip">Claude Code</span>
+        <span class="chip">Claude Desktop</span>
+        <span class="chip">Codex</span>
+        <span class="chip">Gemini CLI</span>
+      </div>
+    </div>
+
+    <div class="arrow"><b>↓</b><span>one MCP · any client</span></div>
+
+    <div class="card mcp">
+      <div class="t">🔌 AKC MCP Server</div>
+      <div class="s">hosted · Streamable HTTP · no install</div>
+      <div class="api">recall · remember · stats · export · patterns · gaps</div>
+    </div>
+
+    <div class="split">
+      <div class="side">
+        <div class="arrow"><b>↓ ↑</b><span>read: recall · write: remember (raw → experimental)</span></div>
+      </div>
+    </div>
+
+    <div class="card akc">
+      <div class="t">🧠 AKC — shared knowledge base</div>
+      <div class="s">patterns · confidence · tiers (gold › production › experimental) · gaps · history</div>
+    </div>
+
+    <div class="arrow"><b>↑</b><span>audit /patterns /stats /gaps&nbsp;&nbsp;·&nbsp;&nbsp;curate /curate → promote to gold</span></div>
+
+    <div class="card oc">
+      <div class="t">🛡️ OpenClaw Steward — control plane</div>
+      <div class="s">autonomous curator · NOT a user channel · governs the KB behind the scenes</div>
+    </div>
+    <div class="note">The two never talk directly — they meet <b>through AKC</b>. (Users plant seeds; the Steward tends the garden.)</div>
+  </div>
+
+  <h2>Flywheel — self-improving memory</h2>
+  <div class="fly">
+    <div class="step"><span class="n">1</span><div class="t">User remembers</div><div class="s">a raw pattern</div></div>
+    <span class="ar">→</span>
+    <div class="step"><span class="n">2</span><div class="t">AKC stores it</div><div class="s">tier: experimental</div></div>
+    <span class="ar">→</span>
+    <div class="step"><span class="n">3</span><div class="t">Steward promotes</div><div class="s">→ gold (with reason)</div></div>
+    <span class="ar">→</span>
+    <div class="step"><span class="n">4</span><div class="t">Next recall</div><div class="s">surfaces the gold</div></div>
+    <span class="ar">⟲</span>
+  </div>
+  <div class="note">The more the team uses it, the smarter it gets — zero manual curation by users.</div>
+
+  <h2>Live now</h2>
+  <div class="grid">
+    <div class="stat"><div class="v g">30</div><div class="k">patterns</div></div>
+    <div class="stat"><div class="v g">5</div><div class="k">gold tier</div></div>
+    <div class="stat"><div class="v c">0.82</div><div class="k">HERO (promote candidate)</div></div>
+    <div class="stat"><div class="v v2">2</div><div class="k">coverage gaps</div></div>
+    <div class="stat"><div class="v c">7</div><div class="k">MCP tools</div></div>
+    <div class="stat"><div class="v gr">3</div><div class="k">live runtimes</div></div>
+  </div>
+
+  <h2>Endpoints</h2>
+  <table>
+    <tr><th>Component</th><th>Role</th><th>Endpoint</th></tr>
+    <tr><td>AKC backend</td><td>shared memory + REST API</td><td class="mono">endpoint-30123c53…vngcloud.vn</td></tr>
+    <tr><td>AKC MCP (hosted)</td><td>the single user-facing surface</td><td class="mono">endpoint-8976bc68…vngcloud.vn/mcp</td></tr>
+    <tr><td>OpenClaw Steward</td><td>autonomous curator</td><td class="mono">OpenClaw chat · steward workspace</td></tr>
+  </table>
+
+  <div class="foot">AKC · Clawathon 2026 · team claw26-team23 — one MCP, self-improving team memory</div>
+</div>
+</body>
+</html>
