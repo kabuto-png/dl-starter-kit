@@ -28,3 +28,8 @@ data/
 .env.deploy
 .vcr-credentials.json
 .DS_Store
+
+# webdemo
+webdemo/.env.local
+webdemo/node_modules/
+webdemo/.next/
