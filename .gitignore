@@ -3,6 +3,11 @@
 CLAUDE.md
 plans/
 .ref/
+.planning/
+.codex/
+.gemini/
+.antigravity/
+AGENTS.md
 
 .greennode.json
 .env
