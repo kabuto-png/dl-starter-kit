@@ -10,6 +10,10 @@ AKC is a compliance-class memory infrastructure for LLM agents — a single `/re
 
 > Built for Anthropic's Claw-a-thon 2026 — Track: **Automation & Integration**
 
+## Demo Video
+
+[![AKC Demo](docs/thumbnail.png)](https://www.youtube.com/watch?v=bTayoG7jEQw)
+
 ## 🌐 Try Live Demo
 
 Three ways to verify AKC end-to-end without cloning the repo:
