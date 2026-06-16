@@ -4,6 +4,43 @@ All notable changes to **AKC — Agent Knowledge Codex** documented for the AKC 
 
 ---
 
+## v1.1.0 — June 16, 2026 PM (Multi-Client Onboarding + Web Demo)
+
+### ✨ New Features
+
+- **Standalone Web Demo** (`webdemo/`): Next.js + Tailwind page for judges to test AKC end-to-end in a browser — no Claude account, no CLI, no MCP setup. 3-column layout: chat (recall→Gemma→answer) + live stats card (pattern_count auto-refresh) + recent recall feed. Vercel-ready with 4 env vars documented in `.env.example`.
+- **5-Path Onboarding**: `README.md` "Pick Your Path" decision table and `ONBOARDING.md` master guide cover Browser (Vercel), Claude Desktop, Claude Code, Generic MCP (Cursor/Codex/Antigravity/Gemini), and direct REST API — pick by tool, 5-min setup each.
+- **Claude Cowork / Desktop Setup Guide** (`docs/cowork-setup.md`): Step-by-step MCP connector + Project Instructions block paste-and-go. Covers 7 exposed tools (`akc_recall`, `akc_remember`, `akc_stats`, `akc_export`, `akc_health`, `akc_patterns`, `akc_gaps`) with troubleshooting matrix.
+
+### 🔧 Improvements
+
+- **Try Live Demo** badges in README hero — three live links: web demo (Vercel placeholder), REST `/health`, MCP server endpoint.
+- **TL;DR copy-paste block** in README for MCP-capable clients — drops MCP URL + discipline block in one place.
+- **Vietnamese use-case description** (`plans/260613-0000-clawathon-L/use-case-vn.md`, 191 từ) matching Clawathon rule of 100-200 từ.
+- **Submission day-of runbook** (`plans/260613-0000-clawathon-L/submission-checklist.md`) — T-4h / T-2h / T-1h / T-0 timeline, backup plan matrix.
+- **seed_kb.py self-bootstraps `sys.path`** — no PYTHONPATH env needed when running outside container.
+
+### 🐛 Bug Fixes
+
+- **Dedupe `MEMORY_ID`** in `.env` — was set twice; first value (stale) shadowed by dotenv override.
+
+### 🔒 Security
+
+- **Git history audit clean** — confirmed zero secrets ever committed (only `.env.example` tracked). Repo safe to flip from private → public.
+
+### 📦 Infrastructure
+
+- **MCP runtime verified live**: `akc-mcp` runtime at `endpoint-8976bc68-...` responds Streamable HTTP / SSE per MCP 2024-11-05 spec, server `akc` v1.27.2, 7 tools discoverable.
+- **`.gitignore` extended** to exclude `webdemo/.env.local`, `webdemo/node_modules/`, `webdemo/.next/`, plus stale planning dirs.
+
+### ⚠️ Known Issues
+
+- **GitHub repo still PRIVATE** at time of this changelog — must flip public before 12:00 17/06 submission. Audit confirmed safe to flip.
+- **Vercel URL placeholder** in README — webdemo not yet deployed.
+- **`next@14.2.5` security advisory** — webdemo uses Next 14.2.5; bump to 14.2.15+ post-hackathon. Non-blocking for demo.
+
+---
+
 ## v1.0.0 — June 16, 2026 (Hackathon Submission)
 
 ### ✨ New Features

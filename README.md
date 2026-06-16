@@ -10,6 +10,37 @@ AKC is a compliance-class memory infrastructure for LLM agents — a single `/re
 
 > Built for Anthropic's Claw-a-thon 2026 — Track: **Automation & Integration**
 
+## 🌐 Try Live Demo
+
+Three ways to verify AKC end-to-end without cloning the repo:
+
+- **Web demo (Vercel):** https://<vercel-url-tbd>.vercel.app — one-click `recall → remember` flow in the browser
+- **REST API health:** https://endpoint-30123c53-b859-4599-a339-94b2cedabf7b.agentbase-runtime.aiplatform.vngcloud.vn/health
+- **MCP server:** https://endpoint-8976bc68-ff8c-48fc-8045-79e0a38c2762.agentbase-runtime.aiplatform.vngcloud.vn/mcp
+
+> Vercel URL is filled after deploy. The two AgentBase endpoints are live now on VNG GreenNode.
+
+## 🚀 Pick Your Path — Onboarding in 60s
+
+Choose the entry that matches your tooling. Each row links to a 5-min setup guide.
+
+| Audience | Path | Setup | Auto-fire | Guide |
+|---|---|---|---|---|
+| 🌐 **Judge / non-dev** | **Web demo** (Vercel browser) | 0s | n/a | [Try Live](#-try-live-demo) |
+| 🖥️ **Knowledge worker** | **Claude Desktop App** | 1 min (paste config) | Project Instructions | [`docs/cowork-setup.md`](docs/cowork-setup.md) |
+| ⌨️ **Developer (CLI)** | **Claude Code** | 30s (clone skill) | UserPromptSubmit hook ✅ | [`ONBOARDING.md`](ONBOARDING.md) |
+| 🧩 **Cursor / Codex / Antigravity** | **Generic MCP client** | 2 min | Tool-call from agent prompts | [`docs/cowork-setup.md`](docs/cowork-setup.md) (Generic MCP) |
+| 🔌 **Backend integrator** | **REST API direct** | 0s — just `curl` | n/a | [`docs/test-guide-anh-duc.md`](docs/test-guide-anh-duc.md) |
+
+**TL;DR copy-paste for MCP-capable clients:**
+
+```
+MCP URL: https://endpoint-8976bc68-ff8c-48fc-8045-79e0a38c2762.agentbase-runtime.aiplatform.vngcloud.vn/mcp
+Project Instructions block:
+  Before a non-trivial task, call akc_recall(task_context, tags) and cite returned pattern IDs.
+  After a substantive outcome, call akc_remember(task_context, outcome, patterns_used, success).
+```
+
 ## Live Deployment
 
 AKC is deployed on GreenNode AgentBase Runtime:
