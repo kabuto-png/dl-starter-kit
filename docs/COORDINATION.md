@@ -68,7 +68,6 @@ dl_starter_kit/
     ├── architecture_v1.md   # AUTHORITATIVE code structure (anh Đức)
     ├── COORDINATION.md      # this file
     ├── 06-agentbase-state-snapshot.md   # ops state for partner
-    ├── 07-partner-claude-setup.md        # partner Claude Code setup
     └── archive/             # historical docs (00-05), kept for context
 ```
 
@@ -152,9 +151,8 @@ dl_starter_kit/
    - `docs/prd/AKC_PRD.md`
    - `docs/architecture_v1.md`
    - `docs/06-agentbase-state-snapshot.md` (AgentBase state)
-   - `docs/07-partner-claude-setup.md` (optional skill install)
 3. Set up `.env` (ask chủ repo for shared values via private channel)
-4. Verify with sanity check script in doc 07 §6
+4. Verify with sanity check script
 
 **For new sync calls / NotebookLM:**
 - Drop transcript link in chat
@@ -245,4 +243,4 @@ This is a Claude Code slash command (e.g. `/akc-recall`, `/akc-remember`) that:
 - Interprets tier/confidence results to decide whether to use pattern
 - Lives in `~/.claude/skills/akc-*/` for any Claude user
 
-Open: where does this skill live? (separate repo for distribution, OR bundled in dl-starter-kit as `skills/` folder, OR contributed to unclaude-code).
+Open: where does this skill live? (separate repo for distribution, OR bundled in dl-starter-kit as `skills/` folder).

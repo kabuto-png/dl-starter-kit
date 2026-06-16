@@ -172,7 +172,6 @@ Cuộc thi list 3 track theo function (Assistant / Data / Automation). AKC nằm
 | Architecture | `docs/architecture_v1.md` | Code structure feature-first |
 | Coordination | `docs/COORDINATION.md` | Decisions + open items + role split |
 | Hackathon context | `docs/06-agentbase-state-snapshot.md` | AgentBase resources state |
-| Partner Claude setup | `docs/07-partner-claude-setup.md` | Setup Claude Code parity |
 | Win strategy brainstorm | `plans/reports/brainstorm-260611-2010-clawathon-win-strategy.md` | Plan win + risks |
 | Phase plan files | `plans/260611-2010-clawathon-win/phase-0X-*.md` | D2-D7 detailed tasks |
 

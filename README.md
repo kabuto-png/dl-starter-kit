@@ -1,8 +1,12 @@
-# AKC — Agent Knowledge Catalyst
+# AKC — Agent Knowledge Codex
 
-**AI agents that learn from your team — without retraining.**
+**The drop-in memory layer that turns any LLM agent into a team that remembers.**
 
-AKC stores what worked, what failed, what's still being tested. Compounding knowledge per task, structured for retrieval, self-correcting via confidence tiers. Reference deployment runs on VNG's internal AgentBase as a compliance-class architecture pattern for any DPO-bound enterprise.
+AKC is a compliance-class memory infrastructure for LLM agents — a single `/recall` before planning, a single `/remember` after the outcome, and your agent compounds team knowledge across sessions, geos, and humans. Outcomes are distilled by **Gemma 4-31b-it** on **VNG's on-prem GreenNode MaaS**, scored into **Gold / Production / Experimental** tiers, and never leave the internal network — purpose-built for DPO-bound enterprises that cannot send internal data to external Claude or SaaS memory vendors. Day 1, a fresh agent cold-starts on seed patterns; by week 3, the same agent walks into a Korea launch already knowing what worked in Japan and what failed in Vietnam — no retraining, no re-onboarding, no prompt-stuffing.
+
+- **Drop-in for any agent** — two REST endpoints (`/recall`, `/remember`), OpenAI-compatible LLM swap, works with Claude Code, OpenClaw, or your own stack
+- **VNG-compliant by construction** — runs on GreenNode AgentBase Runtime, distilled by on-prem Gemma 4-31b-it, zero external data egress (DPO-approved reference deployment)
+- **Compound learning, visible** — Scene 1 cold-start on JP launch → Scene 2 a pattern crosses Gold tier live on screen as KR success carries JP learnings forward
 
 > Built for Anthropic's Claw-a-thon 2026 — Track: **Automation & Integration**
 

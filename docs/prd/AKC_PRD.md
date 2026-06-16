@@ -28,7 +28,7 @@ Existing memory solutions store *conversation history* — raw text, low signal,
 ```
 ┌─────────────────────────────────────────────────────────────┐
 │                        Any AI Agent                         │
-│                    (Claude, Qwen, etc.)                     │
+│                    (Claude, Gemma, etc.)                    │
 └──────────┬──────────────────────────────────────┬──────────┘
            │                                      │
     BEFORE TASK                             AFTER TASK
@@ -86,7 +86,7 @@ The atomic unit of knowledge. Not raw text — a structured record:
 | **Demoted** | < 0.50 | Never returned; preserved for audit |
 
 ### Distillation
-When an agent records a raw outcome, AKC runs a small LLM call (Qwen/Gemma on GreenNode MaaS) to extract a structured pattern before storing. Raw noise → structured knowledge.
+When an agent records a raw outcome, AKC runs a small LLM call (Gemma 4-31b-it on GreenNode MaaS) to extract a structured pattern before storing. Raw noise → structured knowledge.
 
 ---
 
@@ -235,7 +235,7 @@ These are Phase 2 after the hackathon.
 │    /kb/export   → kb.export_markdown()          │
 │                                                 │
 │  distill.py                                     │
-│    Qwen 3 via GreenNode MaaS                    │
+│    Gemma 4-31b-it via GreenNode MaaS            │
 │    raw outcome text → structured Pattern        │
 │                                                 │
 │  kb.py                                          │
@@ -345,7 +345,7 @@ def update_confidence(pattern, outcome):
 |---|---|---|
 | Framework | FastAPI + Python 3.11 | Fast to write, async-native, Pydantic validation |
 | LLM client | `openai` SDK (direct) | Thin client for OpenAI-compatible APIs; LangChain/LangGraph explicitly excluded — no agent abstractions needed |
-| LLM distillation | Qwen 3 via GreenNode MaaS | Strong structured extraction, OpenAI-compatible API |
+| LLM distillation | Gemma 4-31b-it via GreenNode MaaS | Strong structured extraction, OpenAI-compatible API |
 | Semantic search | AgentBase Memory Service | Native platform, no extra infra |
 | Storage | JSONL append-only | Simple, crash-safe, human-readable audit trail |
 | Container | Docker, port 8080 | Required by AgentBase runtime |
@@ -362,7 +362,7 @@ akc/
     routes.py        # All 5 endpoints wired up
     models.py        # Pydantic request/response schemas
     kb.py            # Pattern storage, confidence scoring, tier logic, JSONL
-    distill.py       # Qwen call: raw outcome → structured Pattern
+    distill.py       # Gemma 4-31b-it call: raw outcome → structured Pattern
     memory.py        # AgentBase Memory Service client (store + semantic search)
     config.py        # Env vars (MaaS key, memory ID, KB dir, safety level)
     kb/
@@ -384,7 +384,7 @@ akc/
 |---|---|---|
 | **Jun 10** | Repo setup, models.py, config.py, /health | Skeleton running on port 8080 |
 | **Jun 11** | kb.py — JSONL storage, confidence scoring, tier logic | Patterns stored and queried locally |
-| **Jun 12** | distill.py — Qwen call, structured extraction | Raw outcomes → structured patterns working |
+| **Jun 12** | distill.py — Gemma 4-31b-it call, structured extraction | Raw outcomes → structured patterns working |
 | **Jun 13** | memory.py — AgentBase Memory Service integration | Semantic /recall working end-to-end |
 | **Jun 14** | Dockerfile + deploy to AgentBase | Live endpoint, ACTIVE on platform |
 | **Jun 15** | skill/SKILL.md + /stats + /kb/export + full loop test | Demo-ready, skill drives the loop |

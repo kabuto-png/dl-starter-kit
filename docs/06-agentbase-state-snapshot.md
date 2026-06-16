@@ -146,7 +146,7 @@ Expected: Non-empty response from MaaS endpoint.
 
 ## For Partner with AgentBase Skills
 
-Partner (anh Đức) can use unclaude-code skills for deeper inspection:
+Partner (anh Đức) can use these AgentBase skills for deeper inspection:
 
 | Skill | What it reveals |
 |-------|-----------------|
@@ -156,8 +156,6 @@ Partner (anh Đức) can use unclaude-code skills for deeper inspection:
 | `/agentbase-llm` | Available models, quota usage, latency profile |
 | `/agentbase-deploy` | Build status, vCR push, runtime creation (READY — vCR access cleared D4) |
 | `/agentbase-identity` | Agent identity SSO config, permission scope |
-
-See [`docs/07-partner-claude-setup.md`](07-partner-claude-setup.md) for install + first-run commands.
 
 ---
 
