@@ -1,4 +1,4 @@
-# AKC — Agent Knowledge Codex
+# AKC — Agent Knowledge Collectives
 
 **The drop-in memory layer that turns any LLM agent into a team that remembers.**
 

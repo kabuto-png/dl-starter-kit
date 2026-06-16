@@ -1,6 +1,6 @@
 # Changelog
 
-All notable changes to **AKC — Agent Knowledge Codex** documented for the AKC Clawathon 2026 submission (track: Automation & Integration).
+All notable changes to **AKC — Agent Knowledge Collectives** documented for the AKC Clawathon 2026 submission (track: Automation & Integration).
 
 ---
 
