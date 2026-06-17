@@ -224,6 +224,17 @@ Automates the loop via slash command:
 Skill handles: recall → execute → remember → report (confidence deltas, tier shifts, new patterns).
 Skill file: `.claude/skills/akc-recall-task-remember/SKILL.md`
 
+### Build Claude Cowork bundle
+
+Package the same skill as a `.skill` archive for [Claude Cowork](https://claude.ai/cowork):
+
+```bash
+python3 scripts/build-cowork-skill.py
+# -> cowork-skills/akc-recall-task-remember.skill
+```
+
+The script strips Claude-Code-only syntax (`/uc:` slash commands, `AskUserQuestion`, `TaskCreate`, ...) and zips `skill/` using the frontmatter `name:` field. Install in Cowork via **Skills → Copy to your skills** and point to the generated `.skill` file. Flags: `--input <dir>` (default `skill/`), `--output <dir>` (default `cowork-skills/`).
+
 ## Confidence Engine
 
 Every pattern has a score (0.0–0.95) determining its tier:
