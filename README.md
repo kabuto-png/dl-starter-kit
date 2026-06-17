@@ -16,13 +16,13 @@ AKC is a compliance-class memory infrastructure for LLM agents — a single `/re
 
 ## 🌐 Try Live Demo
 
-Three ways to verify AKC end-to-end without cloning the repo:
+Verify AKC end-to-end against the live AgentBase deployment:
 
-- **Web demo (Vercel):** https://<vercel-url-tbd>.vercel.app — one-click `recall → remember` flow in the browser
 - **REST API health:** https://endpoint-30123c53-b859-4599-a339-94b2cedabf7b.agentbase-runtime.aiplatform.vngcloud.vn/health
 - **MCP server:** https://endpoint-8976bc68-ff8c-48fc-8045-79e0a38c2762.agentbase-runtime.aiplatform.vngcloud.vn/mcp
+- **Web demo (local):** `cd webdemo && npm install && npm run dev` — 3-column chat UI calling the live backend
 
-> Vercel URL is filled after deploy. The two AgentBase endpoints are live now on VNG GreenNode.
+> Both AgentBase endpoints are live on VNG GreenNode and shared with the local web demo.
 
 ## 🚀 Pick Your Path — Onboarding in 60s
 
@@ -30,7 +30,7 @@ Choose the entry that matches your tooling. Each row links to a 5-min setup guid
 
 | Audience | Path | Setup | Auto-fire | Guide |
 |---|---|---|---|---|
-| 🌐 **Judge / non-dev** | **Web demo** (Vercel browser) | 0s | n/a | [Try Live](#-try-live-demo) |
+| 🌐 **Judge / non-dev** | **Web demo** (local Next.js) | `npm install && npm run dev` | n/a | [`webdemo/`](webdemo/) |
 | 🖥️ **Knowledge worker** | **Claude Desktop App** | 1 min (paste config) | Project Instructions | [`docs/cowork-setup.md`](docs/cowork-setup.md) |
 | ⌨️ **Developer (CLI)** | **Claude Code** | 30s (clone skill) | UserPromptSubmit hook ✅ | [`ONBOARDING.md`](ONBOARDING.md) |
 | 🧩 **Cursor / Codex / Antigravity** | **Generic MCP client** | 2 min | Tool-call from agent prompts | [`docs/cowork-setup.md`](docs/cowork-setup.md) (Generic MCP) |
