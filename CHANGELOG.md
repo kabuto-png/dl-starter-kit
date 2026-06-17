@@ -4,6 +4,22 @@ All notable changes to **AKC — Agent Knowledge Collectives** documented for th
 
 ---
 
+## Unreleased — June 17, 2026 (Cowork Bundle + Branding)
+
+### ✨ New Features
+
+- **Cowork skill bundle builder** (`scripts/build-cowork-skill.py`): one-command packager turning the AKC skill into a `.skill` archive installable in Claude Cowork. Strips Claude-Code-only syntax (`/uc:` slash commands, `AskUserQuestion`, `TaskCreate`) and names the bundle from frontmatter. Output: `cowork-skills/akc-recall-task-remember.skill`.
+
+### 🔧 Improvements
+
+- **README**: added "Build Claude Cowork bundle" section with usage, output path, install steps, and CLI flags.
+- **README**: web demo path switched from Vercel placeholder to local Next.js (`cd webdemo && npm install && npm run dev`) — judges now run a real backend instead of a TBD URL.
+- **README**: demo video + thumbnail embedded in hero section.
+- **Branding**: AKC expansion finalized as **"Agent Knowledge Collectives"** (was "Codex") across docs.
+- **Repo hygiene**: `.mailmap` normalizes author display names in `git log` / `git shortlog`.
+
+---
+
 ## v1.1.0 — June 16, 2026 PM (Multi-Client Onboarding + Web Demo)
 
 ### ✨ New Features
