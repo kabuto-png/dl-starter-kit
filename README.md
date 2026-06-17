@@ -301,4 +301,4 @@ Audit trail is provided via `/kb/export` (Gold + Production patterns as markdown
 
 ---
 
-Built for Anthropic's Claw-a-thon 2026
+Built for VNG's Claw-a-thon 2026
